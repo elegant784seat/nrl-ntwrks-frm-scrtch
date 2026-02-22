@@ -1,14 +1,9 @@
-#include <Eigen/Dense>
 #include <iostream>
-
-using Tensor = Eigen::MatrixXd;
+#include <verify/location.hpp>
 
 int main() {
-  Tensor A(2, 3);
-  A << 1,2,3,
-       4,5,6;
+  auto loc = NN_LOC();
+  std::cout << loc.file << ":" << loc.line << " " << loc.func << "\n";
 
-  Tensor B = A * A.transpose();
-
-  std::cout << B << std::endl;
+  return 0;
 }

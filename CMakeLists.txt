@@ -9,8 +9,11 @@ add_executable(${APP_TARGET}
         app/main.cpp
         nn/include/activation.hpp
         nn/include/loss.hpp
-        nn/include/layer.hpp
-        nn/include/verify.hpp
+        nn/include/layers/linear_layer.hpp
+        nn/include/tensor.hpp
+        nn/include/verify/verify.hpp
+        nn/include/verify/location.hpp
+        nn/source/tensor.cpp
 )
 
 target_include_directories(${APP_TARGET} PRIVATE
