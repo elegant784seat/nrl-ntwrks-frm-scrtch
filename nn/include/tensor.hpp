@@ -18,12 +18,12 @@ public:
 
   Tensor transpose() const;
 
-  Tensor matrixmultiplication(const Tensor& A, const Tensor& B);
-  Tensor matrixadd(const Tensor& A, const Tensor& B);
-  Tensor add_row(const Tensor& A, const Tensor& row);
-  Tensor sum_rows(const Tensor& a);
+  static Tensor matmul(const Tensor& A, const Tensor& B);
+  static Tensor add(const Tensor& A, const Tensor& B);
+  static Tensor add_row(const Tensor& A, const Tensor& row);
+  static Tensor sum_rows(const Tensor& a);
 
 private:
   Matrix data_;
 };
-}
+} // namespace nn
