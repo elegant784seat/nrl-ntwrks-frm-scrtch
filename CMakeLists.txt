@@ -14,6 +14,7 @@ add_executable(${APP_TARGET}
         nn/include/verify/verify.hpp
         nn/include/verify/location.hpp
         nn/source/tensor.cpp
+        nn/source/linear_layer.cpp
 )
 
 target_include_directories(${APP_TARGET} PRIVATE
