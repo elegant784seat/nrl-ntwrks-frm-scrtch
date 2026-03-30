@@ -7,14 +7,15 @@ set(APP_TARGET nrl_ntwrks_frm_scrtch)
 
 add_executable(${APP_TARGET}
         app/main.cpp
-        nn/include/activation.hpp
+        nn/include/any_func.hpp
         nn/include/loss.hpp
         nn/include/layers/linear_layer.hpp
         nn/include/tensor.hpp
         nn/include/verify/verify.hpp
         nn/include/verify/location.hpp
         nn/source/tensor.cpp
-        nn/source/linear_layer.cpp
+        nn/source/layers/linear_layer.cpp
+        nn/include/layers/nonlinear_layer.hpp
 )
 
 target_include_directories(${APP_TARGET} PRIVATE
