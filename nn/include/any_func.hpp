@@ -15,9 +15,7 @@ class AnyFunc {
   template <class Func>
   AnyFunc(Func func) : impl_(std::make_unique<Model<std::decay_t<Func>>>(std::move(func))) {}
 
-  AnyFunc (const AnyFunc& other) : impl_(other.impl_->clone()) {
-    NN_VERIFY(impl_ != nullptr);
-  }
+  AnyFunc(const AnyFunc& other) : impl_(other.impl_->clone()) { NN_VERIFY(impl_ != nullptr); }
   AnyFunc& operator=(const AnyFunc& other) {
     if (&other == this) {
       return *this;
@@ -26,7 +24,7 @@ class AnyFunc {
     swap(tmp);
     return *this;
   }
-  AnyFunc (AnyFunc&& other) noexcept = default;
+  AnyFunc(AnyFunc&& other) noexcept = default;
   AnyFunc& operator=(AnyFunc&& other) noexcept = default;
   ~AnyFunc() = default;
 

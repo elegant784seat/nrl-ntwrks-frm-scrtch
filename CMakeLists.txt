@@ -16,6 +16,7 @@ add_executable(${APP_TARGET}
         nn/source/tensor.cpp
         nn/source/layers/linear_layer.cpp
         nn/include/layers/nonlinear_layer.hpp
+        nn/source/layers/nonlinear_layer.cpp
 )
 
 target_include_directories(${APP_TARGET} PRIVATE
