@@ -17,6 +17,12 @@ add_executable(${APP_TARGET}
         nn/source/layers/linear_layer.cpp
         nn/include/layers/nonlinear_layer.hpp
         nn/source/layers/nonlinear_layer.cpp
+        nn/include/activation/relu_func.hpp
+        nn/source/activation/relu_func.cpp
+        nn/include/activation/sigmoid_func.hpp
+        nn/source/activation/sigmoid_func.cpp
+        nn/include/activation/tanh_func.hpp
+        nn/source/activation/tanh_func.cpp
 )
 
 target_include_directories(${APP_TARGET} PRIVATE
