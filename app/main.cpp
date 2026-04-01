@@ -1,28 +1,124 @@
-#include <any>
 #include <iostream>
 
-#include "activation/relu_func.hpp"
-#include "activation/sigmoid_func.hpp"
-#include "activation/tanh_func.hpp"
+#include "../include/activation/relu_func.hpp"
+#include "../include/activation/sigmoid_func.hpp"
+#include "../include/activation/tanh_func.hpp"
+#include "../include/layers/any_layer.hpp"
+#include "../include/layers/linear_layer.hpp"
+#include "../include/layers/nonlinear_layer.hpp"
+#include "../include/verify/verify.hpp"
 #include "any_func.hpp"
-#include "layers/nonlinear_layer.hpp"
 #include "tensor.hpp"
 
 void PrintTensor(const std::string& name, const nn::Tensor& tensor) {
-  std::cout << name << ":\n" << tensor.data() << "\n\n";
+  std::cout << name << ":" << std::endl << tensor.data() << std::endl << std::endl;
+  ;
 }
 
-void CheckRelu() {
-  std::cout << "ReLU" << std::endl;
-  ;
+void PrintHead(const std::string& str) {
+  std::cout << "///////////////////" << std::endl;
+  std::cout << str << std::endl;
+  std::cout << "///////////////////" << std::endl;
+}
+
+enum class Status {
+  Norm,
+  Strem,
+};
+
+bool Ok(Status status) { return status == Status::Norm; }
+
+Status CheckAnyFuncWithNonLin() {
+  PrintHead("Check AnyFunc and NonLinLayer");
+  {
+    std::cout << "Relu" << std::endl;
+
+    nn::AnyFunc func = nn::ReluFunc{};
+    nn::NonLinLayer layer(std::move(func));
+
+    nn::Tensor x(1, 3);
+    x.data()(0, 0) = -1;
+    x.data()(0, 1) = 0;
+    x.data()(0, 2) = 2;
+
+    nn::Tensor y_predict = layer.predict(x);
+    PrintTensor("predict(x)", y_predict);
+
+    auto[st, y_forward] = layer.forward(x);
+    PrintTensor("forward(x)", y_forward);
+
+    nn::Tensor grad_out(1, 3);
+    grad_out.data()(0, 0) = 1;
+    grad_out.data()(0, 1) = 1;
+    grad_out.data()(0, 2) = 1;
+
+    auto [grad_param, grad_input] = layer.backward(st, grad_out);
+    PrintTensor("grad_input", grad_input);
+  }
+  {
+    std::cout << "Sigmoid" << std::endl;
+
+    nn::AnyFunc func = nn::SigmoidFunc{};
+    nn::NonLinLayer layer(std::move(func));
+
+    nn::Tensor x(1, 3);
+    x.data()(0, 0) = -1;
+    x.data()(0, 1) = 0;
+    x.data()(0, 2) = 1;
+
+    nn::Tensor y_predict = layer.predict(x);
+    PrintTensor("predict(x)", y_predict);
+
+    auto[st, y_forward] = layer.forward(x);
+    PrintTensor("forward(x)", y_forward);
+
+    nn::Tensor grad_out(1, 3);
+    grad_out.data()(0, 0) = 1;
+    grad_out.data()(0, 1) = 1;
+    grad_out.data()(0, 2) = 1;
+
+    auto [grad_param, grad_input] = layer.backward(st, grad_out);
+    PrintTensor("grad_input", grad_input);
+  }
+  {
+    std::cout << "Tanh" << std::endl;
+
+    nn::AnyFunc func = nn::TanhFunc{};
+    nn::NonLinLayer layer(std::move(func));
+
+    nn::Tensor x(1, 3);
+    x.data()(0, 0) = -1;
+    x.data()(0, 1) = 0;
+    x.data()(0, 2) = 1;
+
+    nn::Tensor y_predict = layer.predict(x);
+    PrintTensor("predict(x)", y_predict);
+
+    auto[st, y_forward] = layer.forward(x);
+    PrintTensor("forward(x)", y_forward);
+
+    nn::Tensor grad_out(1, 3);
+    grad_out.data()(0, 0) = 1;
+    grad_out.data()(0, 1) = 1;
+    grad_out.data()(0, 2) = 1;
+
+    auto [grad_param, grad_input] = layer.backward(st, grad_out);
+    PrintTensor("grad_input", grad_input);
+  }
+  return Status::Norm;
+}
+
+Status CheckAnyLayerWithNonLin() {
+  PrintHead("Check AnyLayer and NonLinerLayer");
 
   nn::AnyFunc func = nn::ReluFunc{};
-  nn::NonLinLayer layer(std::move(func));
+  nn::NonLinLayer nonlin(std::move(func));
+  nn::AnyLayer layer(std::move(nonlin));
 
   nn::Tensor x(1, 3);
-  x.data()(0, 0) = -1.0f;
-  x.data()(0, 1) = 0.0f;
-  x.data()(0, 2) = 2.0f;
+  x.data()(0, 0) = -2;
+  x.data()(0, 1) = 0;
+  x.data()(0, 2) = 3;
 
   nn::Tensor y_predict = layer.predict(x);
   PrintTensor("predict(x)", y_predict);
@@ -30,26 +126,27 @@ void CheckRelu() {
   auto [state, y_forward] = layer.forward(x);
   PrintTensor("forward(x)", y_forward);
 
-  nn::Tensor grad_output(1, 3);
-  grad_output.data()(0, 0) = 1.0f;
-  grad_output.data()(0, 1) = 1.0f;
-  grad_output.data()(0, 2) = 1.0f;
+  nn::Tensor grad_out(1, 3);
+  grad_out.data()(0, 0) = 1;
+  grad_out.data()(0, 1) = 1;
+  grad_out.data()(0, 2) = 1;
 
-  auto [grad_params, grad_input] = layer.backward(state, grad_output);
+  auto [grad_param, grad_input] = layer.backward(state, grad_out);
   PrintTensor("grad_input", grad_input);
+
+  return Status::Norm;
 }
 
-void CheckSigmoid() {
-  std::cout << "Sigmoid" << std::endl;
-  ;
+Status CheckAnyLayerWithLinLayer() {
+  PrintHead("Check AnyLayer and LinLayer");
 
-  nn::AnyFunc func = nn::SigmoidFunc{};
-  nn::NonLinLayer layer(std::move(func));
+  nn::LinLayer lin(nn::InputDim{3}, nn::OutputDim{2});
+  nn::AnyLayer layer(std::move(lin));
 
   nn::Tensor x(1, 3);
-  x.data()(0, 0) = -1.0f;
-  x.data()(0, 1) = 0.0f;
-  x.data()(0, 2) = 1.0f;
+  x.data()(0, 0) = 1;
+  x.data()(0, 1) = 2;
+  x.data()(0, 2) = 3;
 
   nn::Tensor y_predict = layer.predict(x);
   PrintTensor("predict(x)", y_predict);
@@ -57,44 +154,49 @@ void CheckSigmoid() {
   auto [state, y_forward] = layer.forward(x);
   PrintTensor("forward(x)", y_forward);
 
-  nn::Tensor grad_output(1, 3);
-  grad_output.data()(0, 0) = 1.0f;
-  grad_output.data()(0, 1) = 1.0f;
-  grad_output.data()(0, 2) = 1.0f;
+  nn::Tensor grad_out(1, 2);
+  grad_out.data()(0, 0) = 1;
+  grad_out.data()(0, 1) = 1;
 
-  auto [grad_params, grad_input] = layer.backward(state, grad_output);
+  auto [grad_param, grad_input] = layer.backward(state, grad_out);
   PrintTensor("grad_input", grad_input);
+  return Status::Norm;
 }
-
-void CheckTanh() {
-  std::cout << "Tanh" << std::endl;
-
-  nn::AnyFunc func = nn::TanhFunc{};
-  nn::NonLinLayer layer(std::move(func));
+Status CheckAnyLayerCpMv() {
+  PrintHead("Check AnyLayer cp/mv");
 
   nn::Tensor x(1, 3);
-  x.data()(0, 0) = -1.0f;
-  x.data()(0, 1) = 0.0f;
-  x.data()(0, 2) = 1.0f;
+  x.data()(0, 0) = -1;
+  x.data()(0, 1) = 0;
+  x.data()(0, 2) = 1;
 
-  nn::Tensor y_predict = layer.predict(x);
-  PrintTensor("predict(x)", y_predict);
+  nn::AnyLayer l1(nn::NonLinLayer(nn::AnyFunc(nn::SigmoidFunc{})));
+  nn::AnyLayer l2 = l1;
+  nn::AnyLayer l3 = std::move(l2);
 
-  auto [state, y_forward] = layer.forward(x);
-  PrintTensor("forward(x)", y_forward);
+  PrintTensor("l1.predict(x)", l1.predict(x));
+  PrintTensor("l3.predict(x)", l3.predict(x));
 
-  nn::Tensor grad_output(1, 3);
-  grad_output.data()(0, 0) = 1.0f;
-  grad_output.data()(0, 1) = 1.0f;
-  grad_output.data()(0, 2) = 1.0f;
+  nn::AnyLayer l4(nn::NonLinLayer(nn::AnyFunc(nn::TanhFunc{})));
+  l4 = l1;
+  PrintTensor("l4.predict(x)", l4.predict(x));
 
-  auto [grad_params, grad_input] = layer.backward(state, grad_output);
-  PrintTensor("grad_input", grad_input);
+  nn::AnyLayer l5(nn::NonLinLayer(nn::AnyFunc(nn::ReluFunc{})));
+  l5 = std::move(l4);
+  PrintTensor("l5.predict(x)", l5.predict(x));
+
+  return Status::Norm;
 }
 
 int main() {
-  CheckRelu();
-  CheckSigmoid();
-  CheckTanh();
-  return 0;
+  Status a = CheckAnyFuncWithNonLin();
+  Status b = CheckAnyLayerCpMv();
+  Status c = CheckAnyLayerWithLinLayer();
+  Status d = CheckAnyLayerWithNonLin();
+  if (Ok(a) and Ok(b) and Ok(c) and Ok(d)) {
+    std::cout << "Good!" << std::endl;
+    return 0;
+  }
+  std::cout << "Bad!" << std::endl;
+  return 1;
 }

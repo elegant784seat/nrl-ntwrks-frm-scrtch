@@ -23,6 +23,7 @@ add_executable(${APP_TARGET}
         nn/source/activation/sigmoid_func.cpp
         nn/include/activation/tanh_func.hpp
         nn/source/activation/tanh_func.cpp
+        nn/include/layers/any_layer.hpp
 )
 
 target_include_directories(${APP_TARGET} PRIVATE
