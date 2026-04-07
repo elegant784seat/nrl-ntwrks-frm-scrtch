@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(nrl_ntwrks_frm_scrtch)
 
 set(CMAKE_CXX_STANDARD 20)
-target_compile_features(target_name PRIVATE cxx_std_23)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(APP_TARGET nrl_ntwrks_frm_scrtch)
 
