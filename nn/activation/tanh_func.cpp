@@ -1,4 +1,4 @@
-#include "../include/activation/tanh_func.hpp"
+#include "../activation/tanh_func.hpp"
 
 namespace nn {
 Tensor TanhFunc::operator()(const Tensor& input) const {

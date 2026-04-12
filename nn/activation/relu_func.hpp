@@ -3,10 +3,11 @@
 //
 
 #pragma once
-#include "tensor.hpp"
+
+#include "../tensor.hpp"
 
 namespace nn {
-class TanhFunc {
+class ReluFunc {
  public:
   Tensor operator()(const Tensor& input) const;
   Tensor derivative(const Tensor& input, const Tensor& output) const;

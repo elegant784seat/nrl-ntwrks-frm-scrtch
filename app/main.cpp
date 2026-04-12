@@ -1,15 +1,18 @@
 #include <iostream>
 
-#include "../include/activation/relu_func.hpp"
-#include "../include/activation/sigmoid_func.hpp"
-#include "../include/activation/tanh_func.hpp"
-#include "../include/layers/any_layer.hpp"
-#include "../include/layers/linear_layer.hpp"
-#include "../include/layers/nonlinear_layer.hpp"
-#include "../include/verify/verify.hpp"
-#include "any_func.hpp"
+#include "activation/any_func.hpp"
+#include "activation/relu_func.hpp"
+#include "activation/sigmoid_func.hpp"
+#include "activation/tanh_func.hpp"
+#include "layers/any_layer.hpp"
+#include "layers/linear_layer.hpp"
+#include "layers/nonlinear_layer.hpp"
+#include "verify/verify.hpp"
+#include "Linalg.hpp"
 #include "tensor.hpp"
 
+
+namespace {
 void PrintTensor(const std::string& name, const nn::Tensor& tensor) {
   std::cout << name << ":" << std::endl << tensor.data() << std::endl << std::endl;
   ;
@@ -186,6 +189,7 @@ Status CheckAnyLayerCpMv() {
   PrintTensor("l5.predict(x)", l5.predict(x));
 
   return Status::Norm;
+}
 }
 
 int main() {

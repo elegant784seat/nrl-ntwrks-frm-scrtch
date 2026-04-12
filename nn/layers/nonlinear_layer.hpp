@@ -5,8 +5,8 @@
 
 #include <any>
 
-#include "../any_func.hpp"
-#include "../include/tensor.hpp"
+#include "../activation/any_func.hpp"
+#include "../tensor.hpp"
 #include "../verify/verify.hpp"
 
 namespace nn {

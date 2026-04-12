@@ -1,11 +1,11 @@
 //
 // Created by Loginov Nikolay on 28.03.2026.
 //
-#include "../include/layers/linear_layer.hpp"
+#include "../layers/linear_layer.hpp"
 
 #include <EigenRand/EigenRand>
 
-#include "../include/verify/verify.hpp"
+#include "../verify/verify.hpp"
 
 namespace nn {
 

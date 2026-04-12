@@ -1,9 +1,9 @@
-#include "../include/tensor.hpp"
+#include "tensor.hpp"
 
 #include <utility>
 
-#include "../include/verify/location.hpp"
-#include "../include/verify/verify.hpp"
+#include "verify/location.hpp"
+#include "verify/verify.hpp"
 namespace nn {
 
 Tensor::Tensor(int rows, int columns) : data_(rows, columns) {

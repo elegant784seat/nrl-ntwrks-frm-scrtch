@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "../include/verify/location.hpp"
+#include "../verify/location.hpp"
 
 namespace nn::verify {
 class VerifyError : public std::runtime_error {

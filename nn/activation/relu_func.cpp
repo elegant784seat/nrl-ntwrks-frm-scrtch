@@ -1,4 +1,4 @@
-#include "../include/activation/relu_func.hpp"
+#include "../activation/relu_func.hpp"
 namespace nn {
 
 Tensor ReluFunc::operator()(const Tensor& input) const {

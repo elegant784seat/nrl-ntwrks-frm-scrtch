@@ -1,6 +1,6 @@
-#include "../include/layers/nonlinear_layer.hpp"
+#include "../layers/nonlinear_layer.hpp"
 
-#include "verify/verify.hpp"
+#include "../verify/verify.hpp"
 
 namespace nn {
 NonLinLayer::NonLinLayer(AnyFunc func) : func_(std::move(func)) {}

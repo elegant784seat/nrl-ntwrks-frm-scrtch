@@ -1,7 +1,7 @@
 //
 // Created by Loginov Nikolay on 31.03.2026.
 //
-#include "../include/activation/sigmoid_func.hpp"
+#include "../activation/sigmoid_func.hpp"
 
 namespace nn {
 Tensor SigmoidFunc::operator()(const Tensor& input) const {

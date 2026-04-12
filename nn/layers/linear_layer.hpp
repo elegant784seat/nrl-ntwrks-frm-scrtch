@@ -4,7 +4,7 @@
 #pragma once
 #include <any>
 
-#include "../include/tensor.hpp"
+#include "../tensor.hpp"
 #include "../verify/verify.hpp"
 
 namespace nn {
