@@ -6,25 +6,26 @@
 #include <any>
 
 #include "../activation/any_func.hpp"
-#include "../tensor.hpp"
+
 #include "../verify/verify.hpp"
+#include "Linalg.hpp"
 
 namespace nn {
 
 struct NonLinState {
-  Tensor input;
-  Tensor output;
+  Matrix input;
+  Matrix output;
 };
 
 class NonLinLayer {
  public:
   explicit NonLinLayer(AnyFunc func);
 
-  Tensor predict(const Tensor& input) const;
+  Matrix predict(const Matrix& input) const;
 
-  std::pair<std::any, Tensor> forward(const Tensor& input) const;
+  std::pair<std::any, Matrix> forward(const Matrix& input) const;
 
-  std::pair<std::any, Tensor> backward(const std::any& state, const Tensor& grad_output) const;
+  std::pair<std::any, Matrix> backward(const std::any& state, const Matrix& grad_output) const;
   void update(const std::any& state, const std::any& grad, std::any& optimizer,  std::any& cache);
 
  private:

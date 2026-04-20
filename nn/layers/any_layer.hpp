@@ -6,42 +6,44 @@
 #include <any>
 #include <memory>
 
-#include "tensor.hpp"
+#include "Linalg.hpp"
 #include "verify/verify.hpp"
 namespace nn {
 class AnyLayer {
  public:
-  AnyLayer() = delete;
+  struct ForwardResult {
+    std::any state;
+    Matrix output;
+  };
+
+  struct BackwardResult {
+    std::any grad;
+    Matrix grad_input;
+  };
+
+  AnyLayer() = default;
 
   template <class Layer>
   AnyLayer(Layer layer) : impl_(std::make_unique<Model<std::decay_t<Layer>>>(std::move(layer))) {}
 
-  AnyLayer(const AnyLayer& other) : impl_(other.impl_->clone()) { NN_VERIFY(impl_ != nullptr); }
+  AnyLayer(const AnyLayer& other) : impl_(other.impl_ ? other.impl_->clone() : nullptr) {}
 
-  AnyLayer& operator=(const AnyLayer& other) {
-    if (this == &other) return *this;
-    AnyLayer tmp(other);
-    swap(tmp);
-    return *this;
-  }
+  AnyLayer& operator=(const AnyLayer& other) { return *this = AnyLayer(other); }
   AnyLayer& operator=(AnyLayer&& other) noexcept = default;
   AnyLayer(AnyLayer&& other) noexcept = default;
   ~AnyLayer() = default;
-  void swap(AnyLayer& other) noexcept {
-    std::swap(impl_, other.impl_);
-  }
 
-  Tensor predict(const Tensor& input) const {
+  Matrix predict(const Matrix& input) const {
     NN_VERIFY(impl_ != nullptr);
     return impl_->predict(input);
   }
 
-  std::pair<std::any, Tensor> forward(const Tensor& input) const {
+  ForwardResult forward(const Matrix& input) const {
     NN_VERIFY(impl_ != nullptr);
     return impl_->forward(input);
   }
 
-  std::pair<std::any, Tensor> backward(const std::any& state, const Tensor& grad_output) const {
+  BackwardResult backward(const std::any& state, const Matrix& grad_output) const {
     NN_VERIFY(impl_ != nullptr);
     return impl_->backward(state, grad_output);
   }
@@ -54,12 +56,11 @@ class AnyLayer {
  private:
   struct Concept {
     virtual ~Concept() = default;
-    virtual Tensor predict(const Tensor& input) const = 0;
+    virtual Matrix predict(const Matrix& input) const = 0;
 
-    virtual std::pair<std::any, Tensor> forward(const Tensor& input) const = 0;
+    virtual ForwardResult forward(const Matrix& input) const = 0;
 
-    virtual std::pair<std::any, Tensor> backward(const std::any& state,
-                                                 const Tensor& grad_output) const = 0;
+    virtual BackwardResult backward(const std::any& state, const Matrix& grad_output) const = 0;
 
     virtual void update(const std::any& state, const std::any& grad, std::any& optimizer,
                         std::any& cache) = 0;
@@ -75,14 +76,11 @@ class AnyLayer {
     std::unique_ptr<Concept> clone() const override {
       return std::make_unique<Model<Layer>>(layer_);
     }
-    Tensor predict(const Tensor& input) const override { return layer_.predict(input); }
+    Matrix predict(const Matrix& input) const override { return layer_.predict(input); }
 
-    std::pair<std::any, Tensor> forward(const Tensor& input) const override {
-      return layer_.forward(input);
-    }
+    ForwardResult forward(const Matrix& input) const override { return layer_.forward(input); }
 
-    std::pair<std::any, Tensor> backward(const std::any& state,
-                                         const Tensor& grad_output) const override {
+    BackwardResult backward(const std::any& state, const Matrix& grad_output) const override {
       return layer_.backward(state, grad_output);
     }
 
@@ -94,11 +92,6 @@ class AnyLayer {
    private:
     Layer layer_;
   };
-
- private:
   std::unique_ptr<Concept> impl_;
 };
-inline void swap(AnyLayer& left, AnyLayer& right) noexcept {
-  left.swap(right);
-}
 }  // namespace nn

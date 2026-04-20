@@ -1,18 +1,12 @@
 #include "../activation/tanh_func.hpp"
 
 namespace nn {
-Tensor TanhFunc::operator()(const Tensor& input) const {
-  Tensor output(input.rows(), input.columns());
-  output.data() = input.data().array().tanh().matrix();
-  return output;
-}
+Matrix TanhFunc::operator()(const Matrix& input) const { return input.array().tanh().matrix(); }
 
-Tensor TanhFunc::derivative(const Tensor& input, const Tensor& output) const {
-  (void) input;
-  Tensor result(output.rows(), output.columns());
-  result.data() = (1 - output.data().array().square()).matrix();
-  return result;
+Matrix TanhFunc::derivative(const Matrix& input, const Matrix& output) const {
+  (void)input;
+  return (1 - output.array().square()).matrix();
 }
-} // namespace nn
+}  // namespace nn
 // Created by Loginov Nikolay on 31.03.2026.
 //

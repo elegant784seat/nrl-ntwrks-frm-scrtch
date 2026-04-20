@@ -4,53 +4,69 @@
 #pragma once
 #include <any>
 
-#include "../tensor.hpp"
 #include "../verify/verify.hpp"
+#include "Linalg.hpp"
+#include "random.hpp"
 
 namespace nn {
 
-struct InputDim {
-  int value;
-};
-struct OutputDim {
-  int value;
-};
-
-struct LinLayerState {
-  Tensor input;
-};
-
-struct LinLayerGrad {
-  Tensor grad_weights;
-  Tensor grad_bias;
-
-  LinLayerGrad operator+(const LinLayerGrad& other) const;
-  LinLayerGrad operator-(const LinLayerGrad& other) const;
-  LinLayerGrad operator*(float scalar) const;
-  LinLayerGrad operator/(float scalar) const;
-};
+enum In : Index;
+enum Out : Index;
 
 class LinLayer {
  public:
-  LinLayer(InputDim input_dim, OutputDim output_dim);
-  Tensor predict(const Tensor& input) const;
+  struct State {
+    Matrix input;
+  };
+  struct Grad {
+    Matrix weights;
+    Matrix bias;
+  };
+  struct ForwardResult {
+    std::any state;
+    Matrix output;
+  };
+  struct BackwardResult {
+    std::any grad;
+    Matrix grad_input;
+  };
 
-  std::pair<std::any, Tensor> forward(const Tensor& input) const;
+  LinLayer(In input_dim, Out output_dim, Random& random = GlobalRandom());
+  Matrix predict(const Matrix& input) const;
 
-  std::pair<std::any, Tensor> backward(const std::any& state, const Tensor& grad_output) const;
+  ForwardResult forward(const Matrix& input) const;
+
+  BackwardResult backward(const std::any& state, const Matrix& grad_output) const;
   void update(const std::any& state, const std::any& grad, std::any& optimizer, std::any& cache);
 
-  int input_dim() const;
-  int output_dim() const;
+  Index input_dim() const;
+  Index output_dim() const;
 
-  const Tensor& weigts() const;
-  const Tensor& bias() const;
+  const Matrix& weights() const;
+  const RowVector& bias() const;
 
  private:
   int input_dim_;
   int output_dim_;
 
-  Tensor weights_;
-  Tensor bias_;
+  Matrix weights_;
+  RowVector bias_;
 };
+LinLayer::Grad& operator+=(LinLayer::Grad& left, const LinLayer::Grad& right);
+
+LinLayer::Grad& operator-=(LinLayer::Grad& left, const LinLayer::Grad& right);
+
+LinLayer::Grad& operator*=(LinLayer::Grad& grad, Scalar scalar);
+
+LinLayer::Grad& operator/=(LinLayer::Grad& grad, Scalar scalar);
+
+LinLayer::Grad operator+(LinLayer::Grad left, const LinLayer::Grad& right);
+
+LinLayer::Grad operator-(LinLayer::Grad left, const LinLayer::Grad& right);
+
+LinLayer::Grad operator*(LinLayer::Grad grad, Scalar scalar);
+
+LinLayer::Grad operator*(Scalar scalar, LinLayer::Grad grad);
+
+LinLayer::Grad operator/(LinLayer::Grad grad, Scalar scalar);
 }  // namespace nn

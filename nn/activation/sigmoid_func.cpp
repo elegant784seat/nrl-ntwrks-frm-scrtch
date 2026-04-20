@@ -4,15 +4,11 @@
 #include "../activation/sigmoid_func.hpp"
 
 namespace nn {
-Tensor SigmoidFunc::operator()(const Tensor& input) const {
-  Tensor output(input.rows(), input.columns());
-  output.data() = (1 / (1 + (-input.data().array()).exp())).matrix();
-  return output;
+Matrix SigmoidFunc::operator()(const Matrix& input) const {
+  return (1 / (1 + (-input.array()).exp())).matrix();
 }
-Tensor SigmoidFunc::derivative(const Tensor& input, const Tensor& output) const {
+Matrix SigmoidFunc::derivative(const Matrix& input, const Matrix& output) const {
   (void)input;
-  Tensor result(output.rows(), output.columns());
-  result.data() = (output.data().array() * (1 - output.data().array())).matrix();
-  return result;
+  return (output.array() * (1 - output.array())).matrix();
 }
 }  // namespace nn
