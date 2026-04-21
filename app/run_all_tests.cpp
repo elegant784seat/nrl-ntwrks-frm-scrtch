@@ -127,7 +127,7 @@ Status CheckAnyLayerWithNonLin() {
 Status CheckAnyLayerWithLinLayer() {
   PrintHead("Check AnyLayer and LinLayer");
 
-  LinLayer lin(InputDim{3}, OutputDim{2});
+  LinLayer lin(In{3}, Out{2});
   AnyLayer layer(std::move(lin));
 
   Matrix x(1, 3);

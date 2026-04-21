@@ -78,10 +78,14 @@ class AnyLayer {
     }
     Matrix predict(const Matrix& input) const override { return layer_.predict(input); }
 
-    ForwardResult forward(const Matrix& input) const override { return layer_.forward(input); }
+    ForwardResult forward(const Matrix& input) const override {
+      auto result = layer_.forward(input);
+      return ForwardResult{std::move(result.state), std::move(result.output)};
+    }
 
     BackwardResult backward(const std::any& state, const Matrix& grad_output) const override {
-      return layer_.backward(state, grad_output);
+      auto result = layer_.backward(state, grad_output);
+      return BackwardResult{std::move(result.grad), std::move(result.grad_input)};
     }
 
     void update(const std::any& state, const std::any& grad, std::any& optimizer,
