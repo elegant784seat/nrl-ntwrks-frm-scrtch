@@ -6,15 +6,12 @@
 #include <any>
 
 #include "../activation/any_func.hpp"
-
 #include "../verify/verify.hpp"
 #include "Linalg.hpp"
 
 namespace nn {
 
-
 class NonLinLayer {
- public:
   struct State {
     Matrix input;
     Matrix output;
@@ -27,14 +24,16 @@ class NonLinLayer {
     std::any grad;
     Matrix grad_input;
   };
+
+ public:
   explicit NonLinLayer(AnyFunc func);
 
   Matrix predict(const Matrix& input) const;
 
-  ForwardResult forward(const Matrix& input) const;
+  ForwardResult forward(Matrix&& input) const;
 
   BackwardResult backward(const std::any& state, const Matrix& grad_output) const;
-  void update(const std::any& state, const std::any& grad, std::any& optimizer,  std::any& cache);
+  void update(const std::any& state, const std::any& grad, std::any& optimizer, std::any& cache);
 
  private:
   AnyFunc func_;

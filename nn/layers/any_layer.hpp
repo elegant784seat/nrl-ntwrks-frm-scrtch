@@ -38,9 +38,9 @@ class AnyLayer {
     return impl_->predict(input);
   }
 
-  ForwardResult forward(const Matrix& input) const {
+  ForwardResult forward(Matrix&& input) const {
     NN_VERIFY(impl_ != nullptr);
-    return impl_->forward(input);
+    return impl_->forward(std::move(input));
   }
 
   BackwardResult backward(const std::any& state, const Matrix& grad_output) const {
@@ -58,7 +58,7 @@ class AnyLayer {
     virtual ~Concept() = default;
     virtual Matrix predict(const Matrix& input) const = 0;
 
-    virtual ForwardResult forward(const Matrix& input) const = 0;
+    virtual ForwardResult forward(Matrix&& input) const = 0;
 
     virtual BackwardResult backward(const std::any& state, const Matrix& grad_output) const = 0;
 
@@ -78,8 +78,8 @@ class AnyLayer {
     }
     Matrix predict(const Matrix& input) const override { return layer_.predict(input); }
 
-    ForwardResult forward(const Matrix& input) const override {
-      auto result = layer_.forward(input);
+    ForwardResult forward(Matrix&& input) const override {
+      auto result = layer_.forward(std::move(input));
       return ForwardResult{std::move(result.state), std::move(result.output)};
     }
 

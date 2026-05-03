@@ -7,10 +7,10 @@ NonLinLayer::NonLinLayer(AnyFunc func) : func_(std::move(func)) {}
 
 Matrix NonLinLayer::predict(const Matrix& input) const { return func_(input); }
 
-NonLinLayer::ForwardResult NonLinLayer::forward(const Matrix& input) const {
-  auto output = func_(input);
-  State state{input, output};
-  return {std::any(std::move(state)), std::move(output)};
+NonLinLayer::ForwardResult NonLinLayer::forward(Matrix&& input) const {
+  Matrix output = func_(input);
+  State state{std::move(input), output};
+  return ForwardResult{std::any(std::move(state)), std::move(output)};
 }
 
 NonLinLayer::BackwardResult NonLinLayer::backward(const std::any& state,
@@ -25,8 +25,8 @@ NonLinLayer::BackwardResult NonLinLayer::backward(const std::any& state,
   Matrix grad_input = (grad_output.array() * local_grad.array()).matrix();
   return {std::any{}, std::move(grad_input)};
 }
-void NonLinLayer::update(const std::any& state, const std::any& grad,  std::any& optimizer,
-                          std::any& cache) {
+void NonLinLayer::update(const std::any& state, const std::any& grad, std::any& optimizer,
+                         std::any& cache) {
   (void)state, (void)grad, (void)optimizer, (void)cache;
 }
 

@@ -4,5 +4,5 @@
 
 #pragma once
 namespace nn {
-  [[noreturn]] void react();
-} // namespace nn
+[[noreturn]] void react();
+}  // namespace nn
