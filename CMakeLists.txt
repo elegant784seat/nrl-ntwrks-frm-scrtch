@@ -16,6 +16,7 @@ add_executable(${APP_TARGET}
         nn/except.cpp
         nn/layers/random.cpp
         app/run_all_tests.cpp
+        nn/layers/network.cpp
 )
 
 target_include_directories(${APP_TARGET} PRIVATE
