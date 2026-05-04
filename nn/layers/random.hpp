@@ -15,14 +15,13 @@ class Random {
 
  public:
   explicit Random(std::uint64_t seed = 42) : generator_(seed) {}
-
+  static Random& Global();
   Matrix normalMatrix(Index rows, Index cols, Scalar mean, Scalar stddev);
   RowVector normalRowVector(Index size, Scalar mean, Scalar stddev);
-
+  void shuffle(std::vector<Index>& indices);
  private:
   Generator generator_;
 };
 
-Random& GlobalRandom();
 
 }  // namespace nn

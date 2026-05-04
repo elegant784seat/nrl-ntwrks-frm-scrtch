@@ -47,7 +47,7 @@ Status CheckAnyFuncWithNonLin() {
 
     PrintNamedMatrix("predict(x)", layer.predict(x));
 
-    auto [state, y_forward] = layer.forward(x);
+    auto [state, y_forward] = layer.forward(std::move(x));
     PrintNamedMatrix("forward(x)", y_forward);
 
     Matrix grad_out(1, 3);
@@ -67,7 +67,7 @@ Status CheckAnyFuncWithNonLin() {
 
     PrintNamedMatrix("predict(x)", layer.predict(x));
 
-    auto [state, y_forward] = layer.forward(x);
+    auto [state, y_forward] = layer.forward(std::move(x));
     PrintNamedMatrix("forward(x)", y_forward);
 
     Matrix grad_out(1, 3);
@@ -87,7 +87,7 @@ Status CheckAnyFuncWithNonLin() {
 
     PrintNamedMatrix("predict(x)", layer.predict(x));
 
-    auto [state, y_forward] = layer.forward(x);
+    auto [state, y_forward] = layer.forward(std::move(x));
     PrintNamedMatrix("forward(x)", y_forward);
 
     Matrix grad_out(1, 3);
@@ -112,7 +112,7 @@ Status CheckAnyLayerWithNonLin() {
 
   PrintNamedMatrix("predict(x)", layer.predict(x));
 
-  auto [state, y_forward] = layer.forward(x);
+  auto [state, y_forward] = layer.forward(std::move(x));
   PrintNamedMatrix("forward(x)", y_forward);
 
   Matrix grad_out(1, 3);
@@ -135,7 +135,7 @@ Status CheckAnyLayerWithLinLayer() {
 
   PrintNamedMatrix("predict(x)", layer.predict(x));
 
-  auto [state, y_forward] = layer.forward(x);
+  auto [state, y_forward] = layer.forward(std::move(x));
   PrintNamedMatrix("forward(x)", y_forward);
 
   Matrix grad_out(1, 2);

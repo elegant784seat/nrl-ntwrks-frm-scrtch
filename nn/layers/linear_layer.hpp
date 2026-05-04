@@ -31,7 +31,7 @@ class LinLayer {
   };
 
  public:
-  LinLayer(In input_dim, Out output_dim, Random& random = GlobalRandom());
+  LinLayer(In input_dim, Out output_dim, Random& random = Random::Global());
   Matrix predict(const Matrix& input) const;
 
   ForwardResult forward(Matrix&& input) const;

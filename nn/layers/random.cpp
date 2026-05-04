@@ -5,6 +5,11 @@
 
 namespace nn {
 
+Random& Random::Global() {
+  static Random random;
+  return random;
+}
+
 Matrix Random::normalMatrix(Index rows, Index cols, Scalar mean, Scalar stddev) {
   return Eigen::Rand::normal<Matrix>(rows, cols, generator_, mean, stddev);
 }
@@ -13,9 +18,8 @@ RowVector Random::normalRowVector(Index size, Scalar mean, Scalar stddev) {
   return Eigen::Rand::normal<RowVector>(1, size, generator_, mean, stddev);
 }
 
-Random& GlobalRandom() {
-  static Random random;
-  return random;
+void Random::shuffle(std::vector<Index>& indices) {
+  std::shuffle(indices.begin(), indices.end(), generator_);
 }
 
 }  // namespace nn
