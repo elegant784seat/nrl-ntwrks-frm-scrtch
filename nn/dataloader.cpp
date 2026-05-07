@@ -54,12 +54,8 @@ void DataLoader::reset() {
   }
 }
 
-Index DataLoader::samplesCount() const {
-  return static_cast<Index>(indexes_.size());
-}
+Index DataLoader::samplesCount() const { return static_cast<Index>(indexes_.size()); }
 
-Index DataLoader::batchSize() const {
-  return batch_size_;
-}
+Index DataLoader::batchSize() const { return batch_size_; }
 
 }  // namespace nn

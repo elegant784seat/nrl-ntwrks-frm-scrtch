@@ -2,12 +2,10 @@
 namespace nn {
 
 Matrix ReluFunc::operator()(const Matrix& input) const {
-
   return input.cwiseMax(0);
 }
 
 Matrix ReluFunc::derivative(const Matrix& input, const Matrix&) const {
-  Matrix result(input.rows(), input.cols());
   return (input.array() > 0).template cast<Scalar>().matrix();
 }
 }  // namespace nn
