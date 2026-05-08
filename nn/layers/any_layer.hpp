@@ -7,24 +7,27 @@
 #include <memory>
 
 #include "Linalg.hpp"
+#include "any_types.hpp"
 #include "verify/verify.hpp"
+
 namespace nn {
 class AnyLayer {
  public:
   struct ForwardResult {
-    std::any state;
+    AnyState state;
     Matrix output;
   };
 
   struct BackwardResult {
-    std::any grad;
+    AnyGrad grad;
     Matrix grad_input;
   };
 
   AnyLayer() = default;
 
   template <class Layer>
-  AnyLayer(Layer layer) : impl_(std::make_unique<Model<std::decay_t<Layer>>>(std::move(layer))) {}
+  explicit AnyLayer(Layer layer)
+      : impl_(std::make_unique<Model<std::decay_t<Layer>>>(std::move(layer))) {}
 
   AnyLayer(const AnyLayer& other) : impl_(other.impl_ ? other.impl_->clone() : nullptr) {}
 
@@ -43,14 +46,19 @@ class AnyLayer {
     return impl_->forward(std::move(input));
   }
 
-  BackwardResult backward(const std::any& state, const Matrix& grad_output) const {
+  BackwardResult backward(const AnyState& state, const Matrix& grad_output) const {
     NN_VERIFY(impl_ != nullptr);
     return impl_->backward(state, grad_output);
   }
 
-  void update(const std::any& state, const std::any& grad, std::any& optimizer, std::any& cache) {
+  void update(const AnyState& state, const AnyGrad& grad, std::any& optimizer, AnyCache& cache) {
     NN_VERIFY(impl_ != nullptr);
     impl_->update(state, grad, optimizer, cache);
+  }
+
+  AnyCache initCache() const {
+    NN_VERIFY(impl_ != nullptr);
+    return impl_->initCache();
   }
 
  private:
@@ -60,12 +68,14 @@ class AnyLayer {
 
     virtual ForwardResult forward(Matrix&& input) const = 0;
 
-    virtual BackwardResult backward(const std::any& state, const Matrix& grad_output) const = 0;
+    virtual BackwardResult backward(const AnyState& state, const Matrix& grad_output) const = 0;
 
-    virtual void update(const std::any& state, const std::any& grad, std::any& optimizer,
-                        std::any& cache) = 0;
+    virtual void update(const AnyState& state, const AnyGrad& grad, std::any& optimizer,
+                        AnyCache& cache) = 0;
 
     virtual std::unique_ptr<Concept> clone() const = 0;
+
+    virtual AnyCache initCache() const = 0;
   };
   template <class Layer>
   class Model final : public Concept {
@@ -80,18 +90,28 @@ class AnyLayer {
 
     ForwardResult forward(Matrix&& input) const override {
       auto result = layer_.forward(std::move(input));
-      return ForwardResult{std::move(result.state), std::move(result.output)};
+      return ForwardResult{.state = AnyState(std::move(result.state)),
+                           .output = std::move(result.output)};
     }
 
-    BackwardResult backward(const std::any& state, const Matrix& grad_output) const override {
-      auto result = layer_.backward(state, grad_output);
-      return BackwardResult{std::move(result.grad), std::move(result.grad_input)};
+    BackwardResult backward(const AnyState& state, const Matrix& grad_output) const override {
+      using State = typename Layer::State;
+
+      auto result = layer_.backward(state.get<State>(), grad_output);
+      return BackwardResult{.grad = AnyGrad(std::move(result.grad)),
+                            .grad_input = std::move(result.grad_input)};
     }
 
-    void update(const std::any& state, const std::any& grad, std::any& optimizer,
-                std::any& cache) override {
-      layer_.update(state, grad, optimizer, cache);
+    void update(const AnyState& state, const AnyGrad& grad, std::any& optimizer,
+                AnyCache& cache) override {
+      using State = typename Layer::State;
+      using Grad = typename Layer::Grad;
+      using Cache = typename Layer::Cache;
+
+      layer_.update(state.get<State>(), grad.get<Grad>(), optimizer, cache.get<Cache>());
     }
+
+    AnyCache initCache() const override { return AnyCache(typename Layer::Cache{}); }
 
    private:
     Layer layer_;

@@ -14,19 +14,24 @@ enum In : Index;
 enum Out : Index;
 
 class LinLayer {
+ public:
   struct State {
     Matrix input;
   };
+
   struct Grad {
     Matrix weights;
     RowVector bias;
   };
+  struct Cache {};
+
   struct ForwardResult {
-    std::any state;
+    State state;
     Matrix output;
   };
+
   struct BackwardResult {
-    std::any grad;
+    Grad grad;
     Matrix grad_input;
   };
 
@@ -36,8 +41,8 @@ class LinLayer {
 
   ForwardResult forward(Matrix&& input) const;
 
-  BackwardResult backward(const std::any& state, const Matrix& grad_output) const;
-  void update(const std::any& state, const std::any& grad, std::any& optimizer, std::any& cache);
+  BackwardResult backward(const State& state, const Matrix& grad_output) const;
+  void update(const State& state, const Grad& grad, std::any& optimizer, Cache& cache);
 
   Index input_dim() const;
   Index output_dim() const;

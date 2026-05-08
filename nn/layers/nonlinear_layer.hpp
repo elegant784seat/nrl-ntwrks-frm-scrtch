@@ -12,16 +12,19 @@
 namespace nn {
 
 class NonLinLayer {
+ public:
   struct State {
     Matrix input;
     Matrix output;
   };
+  struct Grad {};
+  struct Cache {};
   struct ForwardResult {
-    std::any state;
+    State state;
     Matrix output;
   };
   struct BackwardResult {
-    std::any grad;
+    Grad grad;
     Matrix grad_input;
   };
 
@@ -32,8 +35,8 @@ class NonLinLayer {
 
   ForwardResult forward(Matrix&& input) const;
 
-  BackwardResult backward(const std::any& state, const Matrix& grad_output) const;
-  void update(const std::any& state, const std::any& grad, std::any& optimizer, std::any& cache);
+  BackwardResult backward(const State& state, const Matrix& grad_output) const;
+  void update(const State& state, const Grad& grad, std::any& optimizer, Cache& cache);
 
  private:
   AnyFunc func_;

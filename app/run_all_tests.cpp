@@ -9,9 +9,13 @@
 #include "activation/relu_func.hpp"
 #include "activation/sigmoid_func.hpp"
 #include "activation/tanh_func.hpp"
+#include "dataloader.hpp"
 #include "layers/any_layer.hpp"
 #include "layers/linear_layer.hpp"
 #include "layers/nonlinear_layer.hpp"
+#include "loss/any_loss.hpp"
+#include "loss/mse_loss.hpp"
+#include "loss/softmax_cross_entropy_loss.hpp"
 
 namespace nn {
 namespace {
@@ -171,6 +175,84 @@ Status CheckAnyLayerCpMv() {
   return Status::Ok;
 }
 
+Status CheckDataLoader() {
+  PrintHead("Check DataLoader");
+
+  Matrix input(5, 2);
+  input << 1.0F, 2.0F, 3.0F, 4.0F, 5.0F, 6.0F, 7.0F, 8.0F, 9.0F, 10.0F;
+
+  Matrix target(5, 1);
+  target << 0.0F, 1.0F, 0.0F, 1.0F, 0.0F;
+
+  DataLoader loader(input, target, 2, ShuffleMode::None);
+
+  std::cout << "samples = " << loader.samplesCount() << std::endl;
+  std::cout << "batch size = " << loader.batchSize() << std::endl;
+
+  Index batch_count = 0;
+  while (loader.hasNext()) {
+    Batch batch = loader.next();
+
+    PrintNamedMatrix("batch.input", batch.input);
+    PrintNamedMatrix("batch.target", batch.target);
+
+    ++batch_count;
+  }
+
+  NN_VERIFY(batch_count == 3);
+
+  loader.reset();
+  NN_VERIFY(loader.hasNext());
+
+  Batch first_batch = loader.next();
+  NN_VERIFY(first_batch.input.rows() == 2);
+  NN_VERIFY(first_batch.input.cols() == 2);
+  NN_VERIFY(first_batch.target.rows() == 2);
+  NN_VERIFY(first_batch.target.cols() == 1);
+
+  return Status::Ok;
+}
+
+Status CheckAnyLoss() {
+  PrintHead("Check AnyLoss");
+
+  std::cout << "MSELoss" << std::endl;
+  {
+    Matrix prediction(2, 2);
+    prediction << 1.0F, 2.0F, 3.0F, 4.0F;
+
+    Matrix target(2, 2);
+    target << 1.0F, 1.0F, 2.0F, 2.0F;
+
+    AnyLoss loss(MseLoss{});
+
+    Scalar value = loss(prediction, target);
+    Matrix grad = loss.gradient(prediction, target);
+
+    std::cout << "loss = " << value << std::endl;
+    PrintNamedMatrix("gradient", grad);
+  }
+
+  std::cout << "SoftMaxCrossEntropyLoss" << std::endl;
+  {
+    Matrix logits(2, 3);
+    logits << 2.0F, 1.0F, 0.1F, 0.5F, 2.5F, 0.3F;
+
+    Matrix target(2, 3);
+    target << 1.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F;
+
+    AnyLoss loss(SoftMaxCrossEntropyLoss{});
+
+    Scalar value = loss(logits, target);
+    Matrix grad = loss.gradient(logits, target);
+
+    std::cout << "loss = " << value << std::endl;
+    PrintNamedMatrix("gradient", grad);
+  }
+
+  return Status::Ok;
+}
+
 }  // namespace
 
 int run_all_tests() {
@@ -178,8 +260,10 @@ int run_all_tests() {
   const Status b = CheckAnyLayerCpMv();
   const Status c = CheckAnyLayerWithLinLayer();
   const Status d = CheckAnyLayerWithNonLin();
+  const Status e = CheckDataLoader();
+  const Status f = CheckAnyLoss();
 
-  if (IsOk(a) && IsOk(b) && IsOk(c) && IsOk(d)) {
+  if (IsOk(a) && IsOk(b) && IsOk(c) && IsOk(d) && IsOk(e) && IsOk(f)) {
     std::cout << "Good!" << std::endl;
     return 0;
   }

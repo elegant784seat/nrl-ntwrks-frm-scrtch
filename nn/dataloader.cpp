@@ -12,11 +12,11 @@ namespace nn {
 DataLoader::DataLoader(Matrix input, Matrix target, Index batch_size, ShuffleMode shuffle_mode)
     : input_(std::move(input)),
       target_(std::move(target)),
-      indexes_(static_cast<size_t>(input.rows())),  // блять я боюсь касты юзать но вроде норм
       batch_size_(batch_size),
       shuffle_mode_(shuffle_mode) {
-  NN_VERIFY(input_.rows() == target.rows());
+  NN_VERIFY(input_.rows() == target_.rows());
   NN_VERIFY(batch_size_ > 0);
+  indexes_.resize(static_cast<size_t>(input_.rows()));
   std::iota(indexes_.begin(), indexes_.end(), Index{0});
   reset();
 }

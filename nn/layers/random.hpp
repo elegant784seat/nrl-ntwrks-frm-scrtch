@@ -19,9 +19,9 @@ class Random {
   Matrix normalMatrix(Index rows, Index cols, Scalar mean, Scalar stddev);
   RowVector normalRowVector(Index size, Scalar mean, Scalar stddev);
   void shuffle(std::vector<Index>& indices);
+
  private:
   Generator generator_;
 };
-
 
 }  // namespace nn

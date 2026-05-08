@@ -66,49 +66,39 @@ Matrix LinLayer::predict(const Matrix& input) const {
 
 LinLayer::ForwardResult LinLayer::forward(Matrix&& input) const {
   Matrix output = predict(input);
-  State state{std::move(input)};
-  return ForwardResult{std::any(std::move(state)), std::move(output)};
+
+  return ForwardResult{.state = State{.input = std::move(input)}, .output = std::move(output)};
 }
 
-LinLayer::BackwardResult LinLayer::backward(const std::any& state,
-                                            const Matrix& grad_output) const {
-  NN_VERIFY(state.has_value());
-
-  const auto& layer_state = std::any_cast<const State&>(state);
-
-  NN_VERIFY(layer_state.input.cols() == input_dim());
+LinLayer::BackwardResult LinLayer::backward(const State& state, const Matrix& grad_output) const {
+  NN_VERIFY(state.input.cols() == input_dim());
   NN_VERIFY(grad_output.cols() == output_dim());
-  NN_VERIFY(grad_output.rows() == layer_state.input.rows());
+  NN_VERIFY(grad_output.rows() == state.input.rows());
 
   Grad grad{
-      layer_state.input.transpose() * grad_output,
-      grad_output.colwise().sum(),
+      .weights = state.input.transpose() * grad_output,
+      .bias = grad_output.colwise().sum(),
   };
 
   Matrix grad_input = grad_output * weights_.transpose();
 
-  return BackwardResult{std::any(std::move(grad)), std::move(grad_input)};
+  return BackwardResult{.grad = std::move(grad), .grad_input = std::move(grad_input)};
 }
 
-void LinLayer::update(const std::any& state, const std::any& grad, std::any& optimizer,
-                      std::any& cache) {
+void LinLayer::update(const State& state, const Grad& grad, std::any& optimizer, Cache& cache) {
   (void)state;
   (void)cache;
 
-  NN_VERIFY(grad.has_value());
   NN_VERIFY(optimizer.has_value());
-
-  const auto& layer_grad = std::any_cast<const Grad&>(grad);
   const Scalar learning_rate = std::any_cast<Scalar>(optimizer);
-
   NN_VERIFY(learning_rate >= 0);
-  NN_VERIFY(layer_grad.weights.rows() == weights_.rows());
-  NN_VERIFY(layer_grad.weights.cols() == weights_.cols());
-  NN_VERIFY(layer_grad.bias.rows() == bias_.rows());
-  NN_VERIFY(layer_grad.bias.cols() == bias_.cols());
+  NN_VERIFY(grad.weights.rows() == weights_.rows());
+  NN_VERIFY(grad.weights.cols() == weights_.cols());
+  NN_VERIFY(grad.bias.rows() == bias_.rows());
+  NN_VERIFY(grad.bias.cols() == bias_.cols());
 
-  weights_ -= learning_rate * layer_grad.weights;
-  bias_ -= learning_rate * layer_grad.bias;
+  weights_ -= learning_rate * grad.weights;
+  bias_ -= learning_rate * grad.bias;
 }
 
 Index LinLayer::input_dim() const { return weights_.rows(); }

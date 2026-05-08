@@ -12,11 +12,15 @@ namespace nn {
 class Network {
  public:
   struct State {
-    std::vector<std::any> layer_states;
+    std::vector<AnyState> layer_states;
   };
 
   struct Grad {
-    std::vector<std::any> layer_grads;
+    std::vector<AnyGrad> layer_grads;
+  };
+
+  struct Cache {
+    std::vector<AnyCache> layer_caches;
   };
 
   struct ForwardResult {
@@ -43,7 +47,9 @@ class Network {
 
   BackwardResult backward(const State& state, const Matrix& grad_output) const;
 
-  void update(const State& state, const Grad& grad, std::any& optimizer, std::any& cache);
+  void update(const State& state, const Grad& grad, std::any& optimizer, Cache& cache);
+
+  Cache initCache() const;
 
  private:
   std::vector<AnyLayer> layers_;

@@ -1,9 +1,7 @@
 #include "../activation/relu_func.hpp"
 namespace nn {
 
-Matrix ReluFunc::operator()(const Matrix& input) const {
-  return input.cwiseMax(0);
-}
+Matrix ReluFunc::operator()(const Matrix& input) const { return input.cwiseMax(0); }
 
 Matrix ReluFunc::derivative(const Matrix& input, const Matrix&) const {
   return (input.array() > 0).template cast<Scalar>().matrix();
