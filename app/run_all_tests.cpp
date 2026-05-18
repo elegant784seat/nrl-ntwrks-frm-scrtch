@@ -10,6 +10,7 @@
 #include "activation/sigmoid_func.hpp"
 #include "activation/tanh_func.hpp"
 #include "dataloader.hpp"
+#include "datasets/mnist_loader.hpp"
 #include "layers/any_layer.hpp"
 #include "layers/linear_layer.hpp"
 #include "layers/nonlinear_layer.hpp"
@@ -18,6 +19,7 @@
 #include "loss/softmax_cross_entropy_loss.hpp"
 #include "optimizer/sgd.hpp"
 #include "optimizer/true_adam.hpp"
+#include "train/train_loop.hpp"
 
 namespace nn {
 namespace {
@@ -261,19 +263,19 @@ Status CheckSgdOptimizer() {
   LinLayer layer(In{2}, Out{1});
 
   LinLayer::Grad grad{
-    .weights = Matrix::Ones(2, 1),
-    .bias = RowVector::Ones(1),
-};
+      .weights = Matrix::Ones(2, 1),
+      .bias = RowVector::Ones(1),
+  };
 
   AnyOptimizer optimizer(Sgd{0.1F});
-  AnyCache cache = optimizer.initCache(AnyGrad(grad));
+  LinLayer::Cache cache = layer.initCache(optimizer);
 
   Matrix before_weights = layer.weights();
   RowVector before_bias = layer.bias();
 
   LinLayer::State state{
-    .input = Matrix::Zero(1, 2),
-};
+      .input = Matrix::Zero(1, 2),
+  };
 
   layer.update(state, grad, optimizer, cache);
 
@@ -296,19 +298,19 @@ Status CheckAdamOptimizer() {
   LinLayer layer(In{2}, Out{1});
 
   LinLayer::Grad grad{
-    .weights = Matrix::Ones(2, 1),
-    .bias = RowVector::Ones(1),
-};
+      .weights = Matrix::Ones(2, 1),
+      .bias = RowVector::Ones(1),
+  };
 
   AnyOptimizer optimizer(Adam{0.001F});
-  AnyCache cache = optimizer.initCache(AnyGrad(layer.zeroGrad()));
+  LinLayer::Cache cache = layer.initCache(optimizer);
 
   Matrix before_weights = layer.weights();
   RowVector before_bias = layer.bias();
 
   LinLayer::State state{
-    .input = Matrix::Zero(1, 2),
-};
+      .input = Matrix::Zero(1, 2),
+  };
 
   layer.update(state, grad, optimizer, cache);
 
@@ -317,7 +319,7 @@ Status CheckAdamOptimizer() {
 
   NN_VERIFY((layer.weights() - before_weights).norm() > 0);
   NN_VERIFY((layer.bias() - before_bias).norm() > 0);
-  auto& adam_cache = cache.get<Adam::Cache>();
+  auto& adam_cache = cache.optimizer_cache.get<Adam::Cache>();
   NN_VERIFY(adam_cache.t == 1);
 
   NN_VERIFY((adam_cache.m.weights - 0.1F * grad.weights).norm() < 1e-5F);
@@ -326,6 +328,127 @@ Status CheckAdamOptimizer() {
   NN_VERIFY((adam_cache.v.weights - 0.001F * grad.weights.array().square().matrix()).norm() <
             1e-5F);
   NN_VERIFY((adam_cache.v.bias - 0.001F * grad.bias.array().square().matrix()).norm() < 1e-5F);
+
+  return Status::Ok;
+}
+
+Status CheckTrainLoop() {
+  PrintHead("Check TrainLoop");
+
+  Matrix input(4, 2);
+  input << 0, 0, 0, 1, 1, 0, 1, 1;
+
+  Matrix target(4, 2);
+  target << 1, 0, 1, 0, 0, 1, 0, 1;
+
+  DataLoader loader(input, target, 2, ShuffleMode::EveryEpoch);
+
+  Network network({AnyLayer(LinLayer(In{2}, Out{8})), AnyLayer(NonLinLayer(AnyFunc(ReluFunc{}))),
+                   AnyLayer(LinLayer(In{8}, Out{2}))});
+
+  AnyLoss loss(SoftMaxCrossEntropyLoss{});
+  AnyOptimizer optimizer(Adam(0.01F));
+
+  TrainLoop loop(TrainConfig{
+      .epochs = 100,
+      .log_mode = LogMode::None,
+      .metrics_mode = MetricsMode::LossAndAccuracy,
+  });
+
+  EvalStat before = loop.evaluate(network, loader, loss);
+
+  std::cout << "before loss = " << before.loss << ", accuracy = " << before.accuracy << std::endl;
+
+  loop.fit(network, loader, loss, optimizer);
+
+  EvalStat after = loop.evaluate(network, loader, loss);
+
+  std::cout << "after loss = " << after.loss << ", accuracy = " << after.accuracy << std::endl;
+
+  NN_VERIFY(after.loss < before.loss);
+  NN_VERIFY(after.accuracy > before.accuracy);
+
+  return Status::Ok;
+}
+
+Status CheckMnistLoader() {
+  PrintHead("Check MnistLoader");
+
+  MnistLoader loader("../data/mnist");
+
+  MnistLoader::Dataset train = loader.loadTrain();
+  MnistLoader::Dataset test = loader.loadTest();
+
+  std::cout << "train input: " << train.input.rows() << " x " << train.input.cols() << std::endl;
+
+  std::cout << "train target: " << train.target.rows() << " x " << train.target.cols() << std::endl;
+
+  std::cout << "test input: " << test.input.rows() << " x " << test.input.cols() << std::endl;
+
+  std::cout << "test target: " << test.target.rows() << " x " << test.target.cols() << std::endl;
+
+  NN_VERIFY(train.input.rows() == 60000);
+  NN_VERIFY(train.input.cols() == 784);
+  NN_VERIFY(train.target.rows() == 60000);
+  NN_VERIFY(train.target.cols() == 10);
+
+  NN_VERIFY(test.input.rows() == 10000);
+  NN_VERIFY(test.input.cols() == 784);
+  NN_VERIFY(test.target.rows() == 10000);
+  NN_VERIFY(test.target.cols() == 10);
+
+  NN_VERIFY(train.input.minCoeff() >= 0.0F);
+  NN_VERIFY(train.input.maxCoeff() <= 1.0F);
+
+  return Status::Ok;
+}
+
+MnistLoader::Dataset SliceDataset(const MnistLoader::Dataset& dataset, Index count) {
+  NN_VERIFY(count > 0);
+  NN_VERIFY(count <= dataset.input.rows());
+
+  return MnistLoader::Dataset{
+      .input = dataset.input.topRows(count),
+      .target = dataset.target.topRows(count),
+  };
+}
+
+Status CheckMnistTraining() {
+  PrintHead("Check MnistTraining");
+
+  MnistLoader loader("../data/mnist");
+
+  MnistLoader::Dataset train = SliceDataset(loader.loadTrain(), 1000);
+  MnistLoader::Dataset test = SliceDataset(loader.loadTest(), 300);
+
+  DataLoader train_loader(train.input, train.target, 64, ShuffleMode::EveryEpoch);
+  DataLoader test_loader(test.input, test.target, 64, ShuffleMode::None);
+
+  Network network({
+      AnyLayer(LinLayer(In{784}, Out{128})),
+      AnyLayer(NonLinLayer(AnyFunc(ReluFunc{}))),
+      AnyLayer(LinLayer(In{128}, Out{10})),
+  });
+
+  AnyLoss loss(SoftMaxCrossEntropyLoss{});
+  AnyOptimizer optimizer(Adam(0.001F));
+
+  TrainLoop loop(TrainConfig{
+      .epochs = 3,
+      .log_mode = LogMode::Epoch,
+      .metrics_mode = MetricsMode::LossAndAccuracy,
+  });
+
+  EvalStat before = loop.evaluate(network, test_loader, loss);
+  std::cout << "before test loss = " << before.loss << ", accuracy = " << before.accuracy
+            << std::endl;
+
+  loop.fit(network, train_loader, loss, optimizer);
+
+  EvalStat after = loop.evaluate(network, test_loader, loss);
+  std::cout << "after test loss = " << after.loss << ", accuracy = " << after.accuracy << std::endl;
+
+  NN_VERIFY(after.accuracy > before.accuracy);
 
   return Status::Ok;
 }
@@ -341,8 +464,12 @@ int run_all_tests() {
   const Status f = CheckAnyLoss();
   const Status g = CheckSgdOptimizer();
   const Status h = CheckAdamOptimizer();
+  const Status i = CheckTrainLoop();
+  const Status j = CheckMnistLoader();
+  const Status k = CheckMnistTraining();
 
-  if (IsOk(a) && IsOk(b) && IsOk(c) && IsOk(d) && IsOk(e) && IsOk(f) && IsOk(g) && IsOk(h)) {
+  if (IsOk(a) && IsOk(b) && IsOk(c) && IsOk(d) && IsOk(e) && IsOk(f) && IsOk(g) && IsOk(h) &&
+      IsOk(i) && IsOk(j) && IsOk(k)) {
     std::cout << "Good!" << std::endl;
     return 0;
   }

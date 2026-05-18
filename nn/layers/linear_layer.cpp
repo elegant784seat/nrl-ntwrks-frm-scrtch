@@ -95,7 +95,8 @@ void LinLayer::update(const State& state, const Grad& grad, AnyOptimizer& optimi
   NN_VERIFY(grad.bias.rows() == bias_.rows());
   NN_VERIFY(grad.bias.cols() == bias_.cols());
 
-  const Grad d_grad = optimizer.make(AnyGrad(grad), cache).get<Grad>();
+  const Grad d_grad =
+    optimizer.make(AnyGrad(grad), cache.optimizer_cache).get<Grad>();
 
   NN_VERIFY(d_grad.weights.rows() == weights_.rows());
   NN_VERIFY(d_grad.weights.cols() == weights_.cols());
@@ -118,6 +119,12 @@ LinLayer::Grad LinLayer::zeroGrad() const {
   return Grad{
       .weights = Matrix::Zero(weights_.rows(), weights_.cols()),
       .bias = RowVector::Zero(bias_.cols()),
+  };
+}
+
+LinLayer::Cache LinLayer::initCache(const AnyOptimizer& optimizer) const {
+  return Cache{
+      .optimizer_cache = optimizer.initCache(AnyGrad(zeroGrad())),
   };
 }
 

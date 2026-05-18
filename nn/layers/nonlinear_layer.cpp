@@ -32,6 +32,11 @@ void NonLinLayer::update(const State& state, const Grad& grad, AnyOptimizer& opt
 
 NonLinLayer::Grad NonLinLayer::zeroGrad() const { return Grad{}; }
 
+NonLinLayer::Cache NonLinLayer::initCache(const AnyOptimizer& optimizer) const {
+  (void)optimizer;
+  return Cache{};
+}
+
 }  // namespace nn
 // Created by Loginov Nikolay on 30.03.2026.
 //

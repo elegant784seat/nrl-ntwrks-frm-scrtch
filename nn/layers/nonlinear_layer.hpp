@@ -41,6 +41,8 @@ class NonLinLayer {
 
   Grad zeroGrad() const;
 
+  Cache initCache(const AnyOptimizer& optimizer) const;
+
  private:
   AnyFunc func_;
 };

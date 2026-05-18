@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <vector>
+
 #include "Linalg.hpp"
 #include "dataloader.hpp"
 #include "layers/network.hpp"
@@ -22,6 +24,7 @@ enum class MetricsMode {
 struct TrainConfig {
   Index epochs = 1;
   LogMode log_mode = LogMode::Epoch;
+  MetricsMode metrics_mode = MetricsMode::LossAndAccuracy;
 };
 
 struct EpochStat {

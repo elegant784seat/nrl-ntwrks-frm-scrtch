@@ -113,7 +113,7 @@ class AnyLayer {
     }
 
     AnyCache initCache(const AnyOptimizer& optimizer) const override {
-      return optimizer.initCache(AnyGrad(layer_.zeroGrad()));
+      return AnyCache(layer_.initCache(optimizer));
     }
 
    private:

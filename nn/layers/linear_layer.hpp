@@ -3,9 +3,9 @@
 //
 #pragma once
 
+#include "../optimizer/any_optimizer.hpp"
 #include "../verify/verify.hpp"
 #include "Linalg.hpp"
-#include "../optimizer/any_optimizer.hpp"
 #include "random.hpp"
 
 namespace nn {
@@ -23,7 +23,10 @@ class LinLayer {
     Matrix weights;
     RowVector bias;
   };
-  using Cache = AnyCache;
+
+  struct Cache {
+    AnyCache optimizer_cache;
+  };
 
   struct ForwardResult {
     State state;
@@ -51,6 +54,8 @@ class LinLayer {
   const RowVector& bias() const;
 
   Grad zeroGrad() const;
+
+  Cache initCache(const AnyOptimizer& optimizer) const;
 
  private:
   Matrix weights_;
