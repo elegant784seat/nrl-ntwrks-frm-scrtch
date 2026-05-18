@@ -2,10 +2,10 @@
 // Created by Loginov Nikolay on 22.02.2026.
 //
 #pragma once
-#include <any>
 
 #include "../verify/verify.hpp"
 #include "Linalg.hpp"
+#include "../optimizer/any_optimizer.hpp"
 #include "random.hpp"
 
 namespace nn {
@@ -23,7 +23,7 @@ class LinLayer {
     Matrix weights;
     RowVector bias;
   };
-  struct Cache {};
+  using Cache = AnyCache;
 
   struct ForwardResult {
     State state;
@@ -42,7 +42,7 @@ class LinLayer {
   ForwardResult forward(Matrix&& input) const;
 
   BackwardResult backward(const State& state, const Matrix& grad_output) const;
-  void update(const State& state, const Grad& grad, std::any& optimizer, Cache& cache);
+  void update(const State& state, const Grad& grad, AnyOptimizer& optimizer, Cache& cache);
 
   Index input_dim() const;
   Index output_dim() const;
@@ -50,25 +50,27 @@ class LinLayer {
   const Matrix& weights() const;
   const RowVector& bias() const;
 
+  Grad zeroGrad() const;
+
  private:
   Matrix weights_;
   RowVector bias_;
 };
-// LinLayer::Grad& operator+=(LinLayer::Grad& left, const LinLayer::Grad& right);
-//
-// LinLayer::Grad& operator-=(LinLayer::Grad& left, const LinLayer::Grad& right);
-//
-// LinLayer::Grad& operator*=(LinLayer::Grad& grad, Scalar scalar);
-//
-// LinLayer::Grad& operator/=(LinLayer::Grad& grad, Scalar scalar);
-//
-// LinLayer::Grad operator+(LinLayer::Grad left, const LinLayer::Grad& right);
-//
-// LinLayer::Grad operator-(LinLayer::Grad left, const LinLayer::Grad& right);
-//
-// LinLayer::Grad operator*(LinLayer::Grad grad, Scalar scalar);
-//
-// LinLayer::Grad operator*(Scalar scalar, LinLayer::Grad grad);
-//
-// LinLayer::Grad operator/(LinLayer::Grad grad, Scalar scalar);
+LinLayer::Grad& operator+=(LinLayer::Grad& left, const LinLayer::Grad& right);
+
+LinLayer::Grad& operator-=(LinLayer::Grad& left, const LinLayer::Grad& right);
+
+LinLayer::Grad& operator*=(LinLayer::Grad& grad, Scalar scalar);
+
+LinLayer::Grad& operator/=(LinLayer::Grad& grad, Scalar scalar);
+
+LinLayer::Grad operator+(LinLayer::Grad left, const LinLayer::Grad& right);
+
+LinLayer::Grad operator-(LinLayer::Grad left, const LinLayer::Grad& right);
+
+LinLayer::Grad operator*(LinLayer::Grad grad, Scalar scalar);
+
+LinLayer::Grad operator*(Scalar scalar, LinLayer::Grad grad);
+
+LinLayer::Grad operator/(LinLayer::Grad grad, Scalar scalar);
 }  // namespace nn

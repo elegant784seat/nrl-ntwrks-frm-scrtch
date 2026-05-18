@@ -2,55 +2,55 @@
 
 namespace nn {
 
-// LinLayer::Grad& operator+=(LinLayer::Grad& left, const LinLayer::Grad& right) {
-//   left.weights = left.weights + right.weights;
-//   left.bias = left.bias + right.bias;
-//   return left;
-// }
-//
-// LinLayer::Grad& operator-=(LinLayer::Grad& left, const LinLayer::Grad& right) {
-//   left.weights = left.weights - right.weights;
-//   left.bias = left.bias - right.bias;
-//   return left;
-// }
-//
-// LinLayer::Grad& operator*=(LinLayer::Grad& grad, Scalar scalar) {
-//   grad.weights = grad.weights * scalar;
-//   grad.bias = grad.bias * scalar;
-//   return grad;
-// }
-//
-// LinLayer::Grad& operator/=(LinLayer::Grad& grad, Scalar scalar) {
-//   NN_VERIFY(scalar != 0);
-//   grad.weights = grad.weights / scalar;
-//   grad.bias = grad.bias / scalar;
-//   return grad;
-// }
-//
-// LinLayer::Grad operator+(LinLayer::Grad left, const LinLayer::Grad& right) {
-//   left += right;
-//   return left;
-// }
-//
-// LinLayer::Grad operator-(LinLayer::Grad left, const LinLayer::Grad& right) {
-//   left -= right;
-//   return left;
-// }
-//
-// LinLayer::Grad operator*(LinLayer::Grad grad, Scalar scalar) {
-//   grad *= scalar;
-//   return grad;
-// }
-//
-// LinLayer::Grad operator*(Scalar scalar, LinLayer::Grad grad) {
-//   grad *= scalar;
-//   return grad;
-// }
-//
-// LinLayer::Grad operator/(LinLayer::Grad grad, Scalar scalar) {
-//   grad /= scalar;
-//   return grad;
-// }
+LinLayer::Grad& operator+=(LinLayer::Grad& left, const LinLayer::Grad& right) {
+  left.weights += right.weights;
+  left.bias += right.bias;
+  return left;
+}
+
+LinLayer::Grad& operator-=(LinLayer::Grad& left, const LinLayer::Grad& right) {
+  left.weights -= right.weights;
+  left.bias -= right.bias;
+  return left;
+}
+
+LinLayer::Grad& operator*=(LinLayer::Grad& grad, Scalar scalar) {
+  grad.weights *= scalar;
+  grad.bias *= scalar;
+  return grad;
+}
+
+LinLayer::Grad& operator/=(LinLayer::Grad& grad, Scalar scalar) {
+  NN_VERIFY(scalar != 0);
+  grad.weights /= scalar;
+  grad.bias /= scalar;
+  return grad;
+}
+
+LinLayer::Grad operator+(LinLayer::Grad left, const LinLayer::Grad& right) {
+  left += right;
+  return left;
+}
+
+LinLayer::Grad operator-(LinLayer::Grad left, const LinLayer::Grad& right) {
+  left -= right;
+  return left;
+}
+
+LinLayer::Grad operator*(LinLayer::Grad grad, Scalar scalar) {
+  grad *= scalar;
+  return grad;
+}
+
+LinLayer::Grad operator*(Scalar scalar, LinLayer::Grad grad) {
+  grad *= scalar;
+  return grad;
+}
+
+LinLayer::Grad operator/(LinLayer::Grad grad, Scalar scalar) {
+  grad /= scalar;
+  return grad;
+}
 
 LinLayer::LinLayer(In input_dim, Out output_dim, Random& random)
     : weights_(random.normalMatrix(input_dim, output_dim, 0, 0.01)),
@@ -85,20 +85,25 @@ LinLayer::BackwardResult LinLayer::backward(const State& state, const Matrix& gr
   return BackwardResult{.grad = std::move(grad), .grad_input = std::move(grad_input)};
 }
 
-void LinLayer::update(const State& state, const Grad& grad, std::any& optimizer, Cache& cache) {
+void LinLayer::update(const State& state, const Grad& grad, AnyOptimizer& optimizer, Cache& cache) {
   (void)state;
-  (void)cache;
 
-  NN_VERIFY(optimizer.has_value());
-  const Scalar learning_rate = std::any_cast<Scalar>(optimizer);
-  NN_VERIFY(learning_rate >= 0);
+  NN_VERIFY(optimizer.hasValue());
+
   NN_VERIFY(grad.weights.rows() == weights_.rows());
   NN_VERIFY(grad.weights.cols() == weights_.cols());
   NN_VERIFY(grad.bias.rows() == bias_.rows());
   NN_VERIFY(grad.bias.cols() == bias_.cols());
 
-  weights_ -= learning_rate * grad.weights;
-  bias_ -= learning_rate * grad.bias;
+  const Grad d_grad = optimizer.make(AnyGrad(grad), cache).get<Grad>();
+
+  NN_VERIFY(d_grad.weights.rows() == weights_.rows());
+  NN_VERIFY(d_grad.weights.cols() == weights_.cols());
+  NN_VERIFY(d_grad.bias.rows() == bias_.rows());
+  NN_VERIFY(d_grad.bias.cols() == bias_.cols());
+
+  weights_ -= d_grad.weights;
+  bias_ -= d_grad.bias;
 }
 
 Index LinLayer::input_dim() const { return weights_.rows(); }
@@ -108,5 +113,12 @@ Index LinLayer::output_dim() const { return weights_.cols(); }
 const Matrix& LinLayer::weights() const { return weights_; }
 
 const RowVector& LinLayer::bias() const { return bias_; }
+
+LinLayer::Grad LinLayer::zeroGrad() const {
+  return Grad{
+      .weights = Matrix::Zero(weights_.rows(), weights_.cols()),
+      .bias = RowVector::Zero(bias_.cols()),
+  };
+}
 
 }  // namespace nn

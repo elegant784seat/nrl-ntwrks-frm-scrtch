@@ -25,9 +25,12 @@ NonLinLayer::BackwardResult NonLinLayer::backward(const State& state,
   Matrix grad_input = (grad_output.array() * local_grad.array()).matrix();
   return BackwardResult{.grad = Grad{}, .grad_input = std::move(grad_input)};
 }
-void NonLinLayer::update(const State& state, const Grad& grad, std::any& optimizer, Cache& cache) {
+void NonLinLayer::update(const State& state, const Grad& grad, AnyOptimizer& optimizer,
+                         Cache& cache) {
   (void)state, (void)grad, (void)optimizer, (void)cache;
 }
+
+NonLinLayer::Grad NonLinLayer::zeroGrad() const { return Grad{}; }
 
 }  // namespace nn
 // Created by Loginov Nikolay on 30.03.2026.

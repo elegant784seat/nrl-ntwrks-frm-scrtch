@@ -47,9 +47,9 @@ class Network {
 
   BackwardResult backward(const State& state, const Matrix& grad_output) const;
 
-  void update(const State& state, const Grad& grad, std::any& optimizer, Cache& cache);
+  void update(const State& state, const Grad& grad, AnyOptimizer& optimizer, Cache& cache);
 
-  Cache initCache() const;
+  Cache initCache(const AnyOptimizer& optimizer) const;
 
  private:
   std::vector<AnyLayer> layers_;

@@ -16,6 +16,8 @@
 #include "loss/any_loss.hpp"
 #include "loss/mse_loss.hpp"
 #include "loss/softmax_cross_entropy_loss.hpp"
+#include "optimizer/sgd.hpp"
+#include "optimizer/true_adam.hpp"
 
 namespace nn {
 namespace {
@@ -253,6 +255,81 @@ Status CheckAnyLoss() {
   return Status::Ok;
 }
 
+Status CheckSgdOptimizer() {
+  PrintHead("Check SgdOptimizer");
+
+  LinLayer layer(In{2}, Out{1});
+
+  LinLayer::Grad grad{
+    .weights = Matrix::Ones(2, 1),
+    .bias = RowVector::Ones(1),
+};
+
+  AnyOptimizer optimizer(Sgd{0.1F});
+  AnyCache cache = optimizer.initCache(AnyGrad(grad));
+
+  Matrix before_weights = layer.weights();
+  RowVector before_bias = layer.bias();
+
+  LinLayer::State state{
+    .input = Matrix::Zero(1, 2),
+};
+
+  layer.update(state, grad, optimizer, cache);
+
+  Matrix expected_weights = before_weights - 0.1F * grad.weights;
+  RowVector expected_bias = before_bias - 0.1F * grad.bias;
+
+  PrintNamedMatrix("before_weights", before_weights);
+  PrintNamedMatrix("after_weights", layer.weights());
+  PrintNamedMatrix("expected_weights", expected_weights);
+
+  NN_VERIFY((layer.weights() - expected_weights).norm() < 1e-5F);
+  NN_VERIFY((layer.bias() - expected_bias).norm() < 1e-5F);
+
+  return Status::Ok;
+}
+
+Status CheckAdamOptimizer() {
+  PrintHead("Check AdamOptimizer");
+
+  LinLayer layer(In{2}, Out{1});
+
+  LinLayer::Grad grad{
+    .weights = Matrix::Ones(2, 1),
+    .bias = RowVector::Ones(1),
+};
+
+  AnyOptimizer optimizer(Adam{0.001F});
+  AnyCache cache = optimizer.initCache(AnyGrad(layer.zeroGrad()));
+
+  Matrix before_weights = layer.weights();
+  RowVector before_bias = layer.bias();
+
+  LinLayer::State state{
+    .input = Matrix::Zero(1, 2),
+};
+
+  layer.update(state, grad, optimizer, cache);
+
+  PrintNamedMatrix("before_weights", before_weights);
+  PrintNamedMatrix("after_weights", layer.weights());
+
+  NN_VERIFY((layer.weights() - before_weights).norm() > 0);
+  NN_VERIFY((layer.bias() - before_bias).norm() > 0);
+  auto& adam_cache = cache.get<Adam::Cache>();
+  NN_VERIFY(adam_cache.t == 1);
+
+  NN_VERIFY((adam_cache.m.weights - 0.1F * grad.weights).norm() < 1e-5F);
+  NN_VERIFY((adam_cache.m.bias - 0.1F * grad.bias).norm() < 1e-5F);
+
+  NN_VERIFY((adam_cache.v.weights - 0.001F * grad.weights.array().square().matrix()).norm() <
+            1e-5F);
+  NN_VERIFY((adam_cache.v.bias - 0.001F * grad.bias.array().square().matrix()).norm() < 1e-5F);
+
+  return Status::Ok;
+}
+
 }  // namespace
 
 int run_all_tests() {
@@ -262,8 +339,10 @@ int run_all_tests() {
   const Status d = CheckAnyLayerWithNonLin();
   const Status e = CheckDataLoader();
   const Status f = CheckAnyLoss();
+  const Status g = CheckSgdOptimizer();
+  const Status h = CheckAdamOptimizer();
 
-  if (IsOk(a) && IsOk(b) && IsOk(c) && IsOk(d) && IsOk(e) && IsOk(f)) {
+  if (IsOk(a) && IsOk(b) && IsOk(c) && IsOk(d) && IsOk(e) && IsOk(f) && IsOk(g) && IsOk(h)) {
     std::cout << "Good!" << std::endl;
     return 0;
   }

@@ -3,11 +3,11 @@
 //
 
 #pragma once
-#include <any>
 #include <memory>
 
 #include "Linalg.hpp"
 #include "any_types.hpp"
+#include "optimizer/any_optimizer.hpp"
 #include "verify/verify.hpp"
 
 namespace nn {
@@ -51,14 +51,15 @@ class AnyLayer {
     return impl_->backward(state, grad_output);
   }
 
-  void update(const AnyState& state, const AnyGrad& grad, std::any& optimizer, AnyCache& cache) {
+  void update(const AnyState& state, const AnyGrad& grad, AnyOptimizer& optimizer,
+              AnyCache& cache) {
     NN_VERIFY(impl_ != nullptr);
     impl_->update(state, grad, optimizer, cache);
   }
 
-  AnyCache initCache() const {
+  AnyCache initCache(const AnyOptimizer& optimizer) const {
     NN_VERIFY(impl_ != nullptr);
-    return impl_->initCache();
+    return impl_->initCache(optimizer);
   }
 
  private:
@@ -70,12 +71,12 @@ class AnyLayer {
 
     virtual BackwardResult backward(const AnyState& state, const Matrix& grad_output) const = 0;
 
-    virtual void update(const AnyState& state, const AnyGrad& grad, std::any& optimizer,
+    virtual void update(const AnyState& state, const AnyGrad& grad, AnyOptimizer& optimizer,
                         AnyCache& cache) = 0;
 
     virtual std::unique_ptr<Concept> clone() const = 0;
 
-    virtual AnyCache initCache() const = 0;
+    virtual AnyCache initCache(const AnyOptimizer& optimizer) const = 0;
   };
   template <class Layer>
   class Model final : public Concept {
@@ -102,7 +103,7 @@ class AnyLayer {
                             .grad_input = std::move(result.grad_input)};
     }
 
-    void update(const AnyState& state, const AnyGrad& grad, std::any& optimizer,
+    void update(const AnyState& state, const AnyGrad& grad, AnyOptimizer& optimizer,
                 AnyCache& cache) override {
       using State = typename Layer::State;
       using Grad = typename Layer::Grad;
@@ -111,7 +112,9 @@ class AnyLayer {
       layer_.update(state.get<State>(), grad.get<Grad>(), optimizer, cache.get<Cache>());
     }
 
-    AnyCache initCache() const override { return AnyCache(typename Layer::Cache{}); }
+    AnyCache initCache(const AnyOptimizer& optimizer) const override {
+      return optimizer.initCache(AnyGrad(layer_.zeroGrad()));
+    }
 
    private:
     Layer layer_;
