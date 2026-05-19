@@ -375,7 +375,7 @@ Status CheckTrainLoop() {
 Status CheckMnistLoader() {
   PrintHead("Check MnistLoader");
 
-  MnistLoader loader("../data/mnist");
+  MnistLoader loader("data/mnist");
 
   Dataset train = loader.loadTrain();
   Dataset test = loader.loadTest();
@@ -414,7 +414,7 @@ Dataset SliceDataset(const Dataset& dataset, Index count) {
 Status CheckMnistTraining() {
   PrintHead("Check MnistTraining");
 
-  MnistLoader loader("../data/mnist");
+  MnistLoader loader("data/mnist");
 
   Dataset train = SliceDataset(loader.loadTrain(), 1000);
   Dataset test = SliceDataset(loader.loadTest(), 300);
