@@ -158,6 +158,190 @@ int main() {
 }
 ```
 
+
+
+---
+
+## Mathematical Background
+
+The library implements a standard fully connected neural network.
+
+For one linear layer, the forward pass is:
+
+```math
+Y = XW + b
+```
+
+where:
+
+- `X` is the input matrix;
+- `W` is the weight matrix;
+- `b` is the bias vector;
+- `Y` is the output matrix.
+
+For a non-linear layer, an activation function is applied element-wise:
+
+```math
+A = f(Y)
+```
+
+During training, the model minimizes a loss function.
+
+### Mean Squared Error
+
+```math
+L(\hat{Y}, Y) =
+\frac{1}{n}
+\sum_{i=1}^{n}
+(\hat{Y}_i - Y_i)^2
+```
+
+Gradient:
+
+```math
+\frac{\partial L}{\partial \hat{Y}} =
+\frac{2}{n}(\hat{Y} - Y)
+```
+
+---
+
+### Softmax
+
+Softmax converts raw model outputs into probabilities:
+
+```math
+\operatorname{softmax}(z_i) =
+\frac{e^{z_i}}
+{\sum_{j=1}^{k} e^{z_j}}
+```
+
+### Cross-Entropy Loss
+
+```math
+L(\hat{Y}, Y) =
+-\sum_{i=1}^{k}
+Y_i \log(\hat{Y}_i)
+```
+
+For Softmax Cross-Entropy, the gradient simplifies to:
+
+```math
+\frac{\partial L}{\partial z} =
+\hat{Y} - Y
+```
+
+---
+
+## Backpropagation
+
+Backpropagation is based on the chain rule:
+
+```math
+\frac{\partial L}{\partial x} =
+\frac{\partial L}{\partial y}
+\cdot
+\frac{\partial y}{\partial x}
+```
+
+For the linear layer:
+
+```math
+Y = XW + b
+```
+
+the gradients are:
+
+### Gradient with respect to weights
+
+```math
+\frac{\partial L}{\partial W} =
+X^T
+\frac{\partial L}{\partial Y}
+```
+
+### Gradient with respect to bias
+
+```math
+\frac{\partial L}{\partial b} =
+\sum_{i=1}^{n}
+\frac{\partial L}{\partial Y_i}
+```
+
+### Gradient with respect to input
+
+```math
+\frac{\partial L}{\partial X} =
+\frac{\partial L}{\partial Y}
+W^T
+```
+
+---
+
+## Optimization
+
+### Stochastic Gradient Descent (SGD)
+
+```math
+\theta_{t+1} =
+\theta_t
+-
+\alpha
+\nabla_\theta L
+```
+
+where:
+
+- `theta` is a trainable parameter;
+- `alpha` is the learning rate;
+- `∇L` is the gradient of the loss function.
+
+---
+
+### Adam Optimizer
+
+First moment estimate:
+
+```math
+m_t =
+\beta_1 m_{t-1}
++
+(1 - \beta_1) g_t
+```
+
+Second moment estimate:
+
+```math
+v_t =
+\beta_2 v_{t-1}
++
+(1 - \beta_2) g_t^2
+```
+
+Bias correction:
+
+```math
+\hat{m}_t =
+\frac{m_t}{1 - \beta_1^t}
+```
+
+```math
+\hat{v}_t =
+\frac{v_t}{1 - \beta_2^t}
+```
+
+Final parameter update:
+
+```math
+\theta_t =
+\theta_{t-1}
+-
+\alpha
+\frac{\hat{m}_t}
+{\sqrt{\hat{v}_t} + \varepsilon}
+```
+
+Adam adapts the learning rate for each parameter independently and usually converges faster than plain SGD.
+
 ---
 
 ## Architecture
