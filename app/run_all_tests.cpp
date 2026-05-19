@@ -10,6 +10,7 @@
 #include "activation/sigmoid_func.hpp"
 #include "activation/tanh_func.hpp"
 #include "dataloader.hpp"
+#include "datasets/dataset.hpp"
 #include "datasets/mnist_loader.hpp"
 #include "layers/any_layer.hpp"
 #include "layers/linear_layer.hpp"
@@ -376,15 +377,12 @@ Status CheckMnistLoader() {
 
   MnistLoader loader("../data/mnist");
 
-  MnistLoader::Dataset train = loader.loadTrain();
-  MnistLoader::Dataset test = loader.loadTest();
+  Dataset train = loader.loadTrain();
+  Dataset test = loader.loadTest();
 
   std::cout << "train input: " << train.input.rows() << " x " << train.input.cols() << std::endl;
-
   std::cout << "train target: " << train.target.rows() << " x " << train.target.cols() << std::endl;
-
   std::cout << "test input: " << test.input.rows() << " x " << test.input.cols() << std::endl;
-
   std::cout << "test target: " << test.target.rows() << " x " << test.target.cols() << std::endl;
 
   NN_VERIFY(train.input.rows() == 60000);
@@ -403,11 +401,11 @@ Status CheckMnistLoader() {
   return Status::Ok;
 }
 
-MnistLoader::Dataset SliceDataset(const MnistLoader::Dataset& dataset, Index count) {
+Dataset SliceDataset(const Dataset& dataset, Index count) {
   NN_VERIFY(count > 0);
   NN_VERIFY(count <= dataset.input.rows());
 
-  return MnistLoader::Dataset{
+  return Dataset{
       .input = dataset.input.topRows(count),
       .target = dataset.target.topRows(count),
   };
@@ -418,8 +416,8 @@ Status CheckMnistTraining() {
 
   MnistLoader loader("../data/mnist");
 
-  MnistLoader::Dataset train = SliceDataset(loader.loadTrain(), 1000);
-  MnistLoader::Dataset test = SliceDataset(loader.loadTest(), 300);
+  Dataset train = SliceDataset(loader.loadTrain(), 1000);
+  Dataset test = SliceDataset(loader.loadTest(), 300);
 
   DataLoader train_loader(train.input, train.target, 64, ShuffleMode::EveryEpoch);
   DataLoader test_loader(test.input, test.target, 64, ShuffleMode::None);

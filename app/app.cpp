@@ -15,6 +15,8 @@
 #include "activation/sigmoid_func.hpp"
 #include "activation/tanh_func.hpp"
 #include "dataloader.hpp"
+#include "datasets/dataset.hpp"
+#include "datasets/fashion_mnist_loader.hpp"
 #include "datasets/mnist_loader.hpp"
 #include "layers/any_layer.hpp"
 #include "layers/linear_layer.hpp"
@@ -30,6 +32,11 @@
 
 namespace nn::app {
 namespace {
+
+enum class DatasetChoice {
+  Mnist = 1,
+  FashionMnist = 2,
+};
 
 enum class ActivationChoice {
   Relu = 1,
@@ -51,8 +58,8 @@ Index ReadIndex(const std::string& prompt, Index min_value, Index max_value) {
       return value;
     }
 
-    std::cout << "Invalid value. Expected integer in [" << min_value << ", "
-              << max_value << "]." << std::endl;
+    std::cout << "Invalid value. Expected integer in [" << min_value << ", " << max_value << "]."
+              << std::endl;
     ClearInput();
   }
 }
@@ -66,8 +73,8 @@ Scalar ReadScalar(const std::string& prompt, Scalar min_value, Scalar max_value)
       return value;
     }
 
-    std::cout << "Invalid value. Expected number in [" << min_value << ", "
-              << max_value << "]." << std::endl;
+    std::cout << "Invalid value. Expected number in [" << min_value << ", " << max_value << "]."
+              << std::endl;
     ClearInput();
   }
 }
@@ -78,8 +85,15 @@ ActivationChoice ReadActivation(Index layer_number) {
   std::cout << "  2. Sigmoid\n";
   std::cout << "  3. Tanh\n";
 
-  return static_cast<ActivationChoice>(
-      ReadIndex("Choose activation: ", 1, 3));
+  return static_cast<ActivationChoice>(ReadIndex("Choose activation: ", 1, 3));
+}
+
+DatasetChoice ReadDatasetChoice() {
+  std::cout << "\nDataset:\n";
+  std::cout << "  1. MNIST\n";
+  std::cout << "  2. Fashion-MNIST\n";
+
+  return static_cast<DatasetChoice>(ReadIndex("Choose dataset: ", 1, 2));
 }
 
 AnyLayer MakeActivationLayer(ActivationChoice choice) {
@@ -165,8 +179,7 @@ AnyOptimizer BuildOptimizerFromMenu() {
   std::cout << "  2. Adam\n";
 
   const Index choice = ReadIndex("Choose optimizer: ", 1, 2);
-  const Scalar learning_rate =
-      ReadScalar("Learning rate [0.000001..0.2]: ", 0.000001F, 0.2F);
+  const Scalar learning_rate = ReadScalar("Learning rate [0.000001..0.2]: ", 0.000001F, 0.2F);
 
   if (choice == 1) {
     return AnyOptimizer(Sgd(learning_rate));
@@ -185,29 +198,41 @@ TrainConfig BuildTrainConfigFromMenu() {
   };
 }
 
-Index ReadBatchSize() {
-  return ReadIndex("Batch size [1..512]: ", 1, 512);
-}
+Index ReadBatchSize() { return ReadIndex("Batch size [1..512]: ", 1, 512); }
 
 }  // namespace
 
 int RunMnistDemo() {
   std::cout << "Neural Networks from Scratch\n";
-  std::cout << "Interactive MNIST training application\n";
+  std::cout << "Interactive image classification training application\n";
 
-  MnistLoader mnist("data/mnist");
+  const DatasetChoice dataset_choice = ReadDatasetChoice();
 
-  std::cout << "Loading MNIST...\n";
-  MnistLoader::Dataset train = mnist.loadTrain();
-  MnistLoader::Dataset test = mnist.loadTest();
+  Dataset train;
+  Dataset test;
+
+  if (dataset_choice == DatasetChoice::Mnist) {
+    MnistLoader mnist("data/mnist");
+
+    std::cout << "Loading MNIST...\n";
+
+    train = mnist.loadTrain();
+    test = mnist.loadTest();
+  } else {
+    FashionMnistLoader fashion_mnist("data/fashion_mnist");
+
+    std::cout << "Loading Fashion-MNIST...\n";
+
+    train = fashion_mnist.loadTrain();
+    test = fashion_mnist.loadTest();
+  }
 
   const Index input_dim = train.input.cols();
   const Index output_dim = train.target.cols();
 
   const Index batch_size = ReadBatchSize();
 
-  DataLoader train_loader(train.input, train.target, batch_size,
-                          ShuffleMode::EveryEpoch);
+  DataLoader train_loader(train.input, train.target, batch_size, ShuffleMode::EveryEpoch);
 
   DataLoader test_loader(test.input, test.target, batch_size, ShuffleMode::None);
 
@@ -217,14 +242,14 @@ int RunMnistDemo() {
   TrainLoop loop(BuildTrainConfigFromMenu());
 
   EvalStat before = loop.evaluate(network, test_loader, loss);
-  std::cout << "Before: test loss = " << before.loss
-            << ", test accuracy = " << before.accuracy << std::endl;
+  std::cout << "Before: test loss = " << before.loss << ", test accuracy = " << before.accuracy
+            << std::endl;
 
   loop.fit(network, train_loader, loss, optimizer);
 
   EvalStat after = loop.evaluate(network, test_loader, loss);
-  std::cout << "After: test loss = " << after.loss
-            << ", test accuracy = " << after.accuracy << std::endl;
+  std::cout << "After: test loss = " << after.loss << ", test accuracy = " << after.accuracy
+            << std::endl;
 
   return 0;
 }

@@ -1,5 +1,5 @@
 //
-// Created by Loginov Nikolay on 18.05.2026.
+// Created by Loginov Nikolay on 19.05.2026.
 //
 
 #pragma once
@@ -9,11 +9,9 @@
 #include "datasets/dataset.hpp"
 
 namespace nn {
-
-class MnistLoader {
+class FashionMnistLoader {
  public:
-  explicit MnistLoader(std::filesystem::path directory);
-
+  explicit FashionMnistLoader(std::filesystem::path directory);
   Dataset loadTrain() const;
   Dataset loadTest() const;
 

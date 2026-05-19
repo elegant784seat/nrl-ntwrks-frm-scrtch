@@ -4,6 +4,12 @@ project(nrl_ntwrks_frm_scrtch)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto -march=native")
+
 set(NN_SOURCES
         nn/layers/linear_layer.cpp
         nn/layers/nonlinear_layer.cpp
@@ -16,12 +22,16 @@ set(NN_SOURCES
         nn/dataloader.cpp
         nn/train/train_loop.cpp
         nn/datasets/mnist_loader.cpp
+        nn/datasets/idx_loader.cpp
+        nn/datasets/fashion_mnist_loader.cpp
 )
 
 add_executable(nrl_ntwrks_frm_scrtch
         app/main.cpp
         app/app.cpp
         ${NN_SOURCES}
+        nn/datasets/idx_loader.cpp
+        nn/datasets/fashion_mnist_loader.cpp
 )
 
 add_executable(run_all_tests

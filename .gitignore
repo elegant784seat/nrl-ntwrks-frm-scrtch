@@ -8,3 +8,6 @@ build/
 
 data/mnist/*
 !data/mnist/.gitkeep
+
+data/fashion_mnist/*
+!data/fashion_mnist/.gitkeep
