@@ -1,0 +1,13 @@
+# CLion / CMake
+cmake-build-*/
+build/
+.idea/
+
+# macOS
+.DS_Store
+
+data/mnist/*
+!data/mnist/.gitkeep
+
+data/fashion_mnist/*
+!data/fashion_mnist/.gitkeep
