@@ -275,7 +275,7 @@ cmake --build cmake-build-release
 using namespace nn;
 
 int main() {
-  LinearLayer layer(In{784}, Out{128});
+  LinLayer layer(In{784}, Out{128});
   ReluFunc relu;
   SoftmaxCrossEntropyLoss loss;
   Sgd optimizer(0.01f);
