@@ -7,8 +7,8 @@
 #include "Linalg.hpp"
 
 namespace nn {
-  struct Dataset {
-    Matrix input;
-    Matrix target;
-  };
+struct Dataset {
+  Matrix input;
+  Matrix target;
+};
 }  // namespace nn

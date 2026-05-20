@@ -9,18 +9,17 @@
 #include "layers/linear_layer.hpp"
 
 namespace nn {
- class Sgd {
+class Sgd {
  public:
   explicit Sgd(Scalar learning_rate) : learning_rate_(learning_rate) {
     NN_VERIFY(learning_rate >= 0);
   }
-   AnyGrad make(const AnyGrad& grad, AnyCache&) const {
+  AnyGrad make(const AnyGrad& grad, AnyCache&) const {
     return AnyGrad(learning_rate_ * grad.get<LinLayer::Grad>());
   }
-   AnyCache initCache(const AnyGrad&) const {
-    return AnyCache{};
-  }
+  AnyCache initCache(const AnyGrad&) const { return AnyCache{}; }
+
  private:
-   Scalar learning_rate_;
- };
-} // namespace nn
+  Scalar learning_rate_;
+};
+}  // namespace nn

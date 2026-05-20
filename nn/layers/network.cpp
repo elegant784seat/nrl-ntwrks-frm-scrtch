@@ -43,7 +43,7 @@ Network::BackwardResult Network::backward(const State& state, const Matrix& grad
   return BackwardResult{.grad = std::move(grad), .grad_input = std::move(cur_grad)};
 }
 
-void Network::update(const State& state, const Grad& grad,  AnyOptimizer& optimizer, Cache& cache) {
+void Network::update(const State& state, const Grad& grad, AnyOptimizer& optimizer, Cache& cache) {
   NN_VERIFY(!layers_.empty());
   NN_VERIFY(state.layer_states.size() == layers_.size());
   NN_VERIFY(grad.layer_grads.size() == layers_.size());

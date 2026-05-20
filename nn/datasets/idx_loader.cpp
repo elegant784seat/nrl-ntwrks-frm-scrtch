@@ -17,9 +17,7 @@ std::uint32_t ReadBigEndianUInt32(std::ifstream& input) {
   input.read(bytes, 4);
   NN_VERIFY(input.good());
 
-  return (ToByte(bytes[0]) << 24) |
-         (ToByte(bytes[1]) << 16) |
-         (ToByte(bytes[2]) << 8) |
+  return (ToByte(bytes[0]) << 24) | (ToByte(bytes[1]) << 16) | (ToByte(bytes[2]) << 8) |
          ToByte(bytes[3]);
 }
 
@@ -40,8 +38,7 @@ unsigned char ReadByte(std::ifstream& input) {
 }  // namespace
 
 Dataset LoadIdxDataset(const std::filesystem::path& images_path,
-                       const std::filesystem::path& labels_path,
-                       const IdxLoaderConfig& config) {
+                       const std::filesystem::path& labels_path, const IdxLoaderConfig& config) {
   std::ifstream images = OpenBinaryFile(images_path);
   std::ifstream labels = OpenBinaryFile(labels_path);
 

@@ -33,39 +33,26 @@ class Adam {
 
     ++adam_cache.t;
 
-    adam_cache.m.weights =
-        beta1_ * adam_cache.m.weights + (1 - beta1_) * g.weights;
+    adam_cache.m.weights = beta1_ * adam_cache.m.weights + (1 - beta1_) * g.weights;
 
-    adam_cache.m.bias =
-        beta1_ * adam_cache.m.bias + (1 - beta1_) * g.bias;
+    adam_cache.m.bias = beta1_ * adam_cache.m.bias + (1 - beta1_) * g.bias;
 
     adam_cache.v.weights =
-        beta2_ * adam_cache.v.weights +
-        (1 - beta2_) * g.weights.array().square().matrix();
+        beta2_ * adam_cache.v.weights + (1 - beta2_) * g.weights.array().square().matrix();
 
     adam_cache.v.bias =
-        beta2_ * adam_cache.v.bias +
-        (1 - beta2_) * g.bias.array().square().matrix();
+        beta2_ * adam_cache.v.bias + (1 - beta2_) * g.bias.array().square().matrix();
 
-    const Scalar bias_correction1 =
-        1 - static_cast<Scalar>(std::pow(beta1_, adam_cache.t));
+    const Scalar bias_correction1 = 1 - static_cast<Scalar>(std::pow(beta1_, adam_cache.t));
 
-    const Scalar bias_correction2 =
-        1 - static_cast<Scalar>(std::pow(beta2_, adam_cache.t));
+    const Scalar bias_correction2 = 1 - static_cast<Scalar>(std::pow(beta2_, adam_cache.t));
 
     LinLayer::Grad m_hat = adam_cache.m / bias_correction1;
     LinLayer::Grad v_hat = adam_cache.v / bias_correction2;
     LinLayer::Grad d_grad{
-        .weights =
-            learning_rate_ *
-            (m_hat.weights.array() /
-             (v_hat.weights.array().sqrt() + eps_))
-                .matrix(),
-        .bias =
-            learning_rate_ *
-            (m_hat.bias.array() /
-             (v_hat.bias.array().sqrt() + eps_))
-                .matrix(),
+        .weights = learning_rate_ *
+                   (m_hat.weights.array() / (v_hat.weights.array().sqrt() + eps_)).matrix(),
+        .bias = learning_rate_ * (m_hat.bias.array() / (v_hat.bias.array().sqrt() + eps_)).matrix(),
     };
     return AnyGrad(std::move(d_grad));
   }

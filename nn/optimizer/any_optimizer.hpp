@@ -9,7 +9,7 @@
 
 namespace nn {
 class AnyOptimizer {
-public:
+ public:
   AnyOptimizer() = default;
 
   template <class Optimizer>
@@ -24,22 +24,13 @@ public:
   AnyOptimizer& operator=(AnyOptimizer&& other) noexcept = default;
   ~AnyOptimizer() = default;
 
-  AnyGrad make(const AnyGrad& grad, AnyCache& cache) {
-    return impl_->make(grad, cache);
-  }
+  AnyGrad make(const AnyGrad& grad, AnyCache& cache) { return impl_->make(grad, cache); }
 
-  AnyCache initCache(const AnyGrad& example_grad) const {
-    return impl_->initCache(example_grad);
-  }
+  AnyCache initCache(const AnyGrad& example_grad) const { return impl_->initCache(example_grad); }
 
-  bool hasValue() const noexcept {
-    return impl_ != nullptr;
-  }
+  bool hasValue() const noexcept { return impl_ != nullptr; }
 
-  explicit operator bool() const noexcept {
-    return hasValue();
-  }
-
+  explicit operator bool() const noexcept { return hasValue(); }
 
  private:
   struct Concept {
