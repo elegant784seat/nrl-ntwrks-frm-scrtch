@@ -272,11 +272,13 @@ cmake --build cmake-build-release
 #include "loss/softmax_cross_entropy_loss.hpp"
 #include "optimizer/sgd.hpp"
 
+using namespace nn;
+
 int main() {
-  nn::LinearLayer layer(784, 128);
-  nn::ReluFunc relu;
-  nn::SoftmaxCrossEntropyLoss loss;
-  nn::Sgd optimizer(0.01f);
+  LinearLayer layer(In{784}, Out{128});
+  ReluFunc relu;
+  SoftmaxCrossEntropyLoss loss;
+  Sgd optimizer(0.01f);
 
   return 0;
 }
