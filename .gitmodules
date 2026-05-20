@@ -3,4 +3,4 @@
 	url = https://gitlab.com/libeigen/eigen.git
 [submodule "external/eigenrand"]
 	path = external/eigenrand
-	url = git@github.com:bab2min/EigenRand.git
+	url = https://github.com/bab2min/EigenRand.git

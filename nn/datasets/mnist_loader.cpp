@@ -17,9 +17,9 @@ MnistLoader::MnistLoader(std::filesystem::path directory)
 
 Dataset MnistLoader::loadTrain() const {
   const std::filesystem::path images_path =
-      directory_ / "train-images.idx3-ubyte";
+      directory_ / "train-images-idx3-ubyte";
   const std::filesystem::path labels_path =
-      directory_ / "train-labels.idx1-ubyte";
+      directory_ / "train-labels-idx1-ubyte";
 
   std::cout << "Opening train images: "
             << std::filesystem::absolute(images_path) << std::endl;
@@ -31,9 +31,9 @@ Dataset MnistLoader::loadTrain() const {
 
 Dataset MnistLoader::loadTest() const {
   const std::filesystem::path images_path =
-      directory_ / "t10k-images.idx3-ubyte";
+      directory_ / "t10k-images-idx3-ubyte";
   const std::filesystem::path labels_path =
-      directory_ / "t10k-labels.idx1-ubyte";
+      directory_ / "t10k-labels-idx1-ubyte";
 
   std::cout << "Opening test images: "
             << std::filesystem::absolute(images_path) << std::endl;
