@@ -25,6 +25,14 @@
 namespace nn {
 namespace {
 
+bool HasMnistDataset() {
+  const std::filesystem::path dir = "data/mnist";
+  return std::filesystem::exists(dir / "train-images-idx3-ubyte") &&
+         std::filesystem::exists(dir / "train-labels-idx1-ubyte") &&
+         std::filesystem::exists(dir / "t10k-images-idx3-ubyte") &&
+         std::filesystem::exists(dir / "t10k-labels-idx1-ubyte");
+}
+
 void PrintHead(const std::string& str) {
   std::cout << "///////////////////" << std::endl;
   std::cout << str << std::endl;
@@ -463,11 +471,19 @@ int run_all_tests() {
   const Status g = CheckSgdOptimizer();
   const Status h = CheckAdamOptimizer();
   const Status i = CheckTrainLoop();
-  const Status j = CheckMnistLoader();
-  const Status k = CheckMnistTraining();
 
-  if (IsOk(a) && IsOk(b) && IsOk(c) && IsOk(d) && IsOk(e) && IsOk(f) && IsOk(g) && IsOk(h) &&
-      IsOk(i) && IsOk(j) && IsOk(k)) {
+  bool ok = IsOk(a) && IsOk(b) && IsOk(c) && IsOk(d) && IsOk(e) && IsOk(f) && IsOk(g) && IsOk(h) &&
+            IsOk(i);
+
+  if (HasMnistDataset()) {
+    const Status j = CheckMnistLoader();
+    const Status k = CheckMnistTraining();
+    ok = ok && IsOk(j) && IsOk(k);
+  } else {
+    std::cout << "Skip MNIST checks: data/mnist is not found or incomplete." << std::endl;
+  }
+
+  if (ok) {
     std::cout << "Good!" << std::endl;
     return 0;
   }
