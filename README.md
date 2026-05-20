@@ -1,6 +1,6 @@
 # Neural Networks from Scratch
 
-C++ library for building and training fully connected neural networks from scratch.
+C++20 library for building and training fully connected neural networks from scratch.
 
 Russian project name: **Нейросети с нуля**.
 
@@ -10,37 +10,36 @@ Russian project name: **Нейросети с нуля**.
 
 This project is an educational neural network library written in modern C++.
 
-The main goal is to implement the core parts of neural network training manually, without using high-level machine learning frameworks such as PyTorch or TensorFlow.
+The goal is to implement the core parts of neural network training manually, without high-level machine learning frameworks such as PyTorch or TensorFlow.
 
-The project focuses on:
+The project includes:
 
-- fully connected neural networks;
-- forward propagation;
-- backpropagation;
+- fully connected neural network layers;
+- activation functions;
 - loss functions;
 - optimizers;
-- mini-batch training;
-- dataset loading;
-- type erasure in C++;
-- value semantics;
-- clean modular API design.
-
-The library is intended primarily for studying how neural networks work internally.
+- mini-batch data loading;
+- MNIST / Fashion-MNIST IDX loading;
+- forward propagation;
+- backpropagation;
+- training loop;
+- type-erased C++ interfaces.
 
 ---
 
 ## Features
 
-- Fully connected neural network components
-- Mini-batch data loading
+- Fully connected neural networks
+- Mini-batch training
 - Forward and backward propagation
 - Manual gradient computation
-- MNIST and Fashion-MNIST IDX dataset support
-- Type-erased interfaces for activations, layers, losses and optimizers
+- MNIST support
+- Fashion-MNIST support
+- Type-erased interfaces
 - Modern C++20 codebase
 - CMake build system
 - Git submodules for third-party dependencies
-- Console demo and manual tests
+- Dataset download scripts
 
 ---
 
@@ -75,7 +74,7 @@ The library is intended primarily for studying how neural networks work internal
 
 - Generic `DataLoader`
 - IDX dataset loader
-- MNIST-compatible dataset loader
+- MNIST-compatible loader
 - Batch iteration
 - Optional shuffling
 
@@ -85,25 +84,13 @@ The library is intended primarily for studying how neural networks work internal
 - Forward pass
 - Backward pass
 - Gradient propagation
-- Parameter update step
-
----
-
-## Tech Stack
-
-- C++20
-- CMake
-- Eigen
-- EigenRand
-- Git submodules
-- clang-format
-- clang-tidy
+- Parameter updates
 
 ---
 
 ## Dependencies
 
-The project uses third-party dependencies through Git submodules:
+The project uses Git submodules:
 
 - Eigen
 - EigenRand
@@ -115,11 +102,72 @@ git clone --recurse-submodules https://github.com/elegant784seat/nrl-ntwrks-frm-
 cd nrl-ntwrks-frm-scrtch
 ```
 
-If the repository was cloned without submodules, initialize them manually:
+If the repository was cloned without submodules:
 
 ```bash
+git submodule sync --recursive
 git submodule update --init --recursive
 ```
+
+Check that submodules were downloaded correctly:
+
+```bash
+ls external/eigen/Eigen
+ls external/eigenrand
+```
+
+If `external/eigen` or `external/eigenrand` is empty, run:
+
+```bash
+rm -rf external/eigen external/eigenrand
+git submodule update --init --recursive
+```
+
+---
+
+## Dataset Setup
+
+Datasets are not stored in the repository.
+
+Download MNIST:
+
+```bash
+./scripts/download_mnist.sh
+```
+
+Download Fashion-MNIST:
+
+```bash
+./scripts/download_fashion_mnist.sh
+```
+
+If scripts are not executable:
+
+```bash
+chmod +x scripts/download_mnist.sh scripts/download_fashion_mnist.sh
+```
+
+Expected MNIST structure:
+
+```text
+data/mnist/
+├── train-images-idx3-ubyte
+├── train-labels-idx1-ubyte
+├── t10k-images-idx3-ubyte
+└── t10k-labels-idx1-ubyte
+```
+
+Expected Fashion-MNIST structure:
+
+```text
+data/fashion_mnist/
+├── train-images-idx3-ubyte
+├── train-labels-idx1-ubyte
+├── t10k-images-idx3-ubyte
+└── t10k-labels-idx1-ubyte
+```
+
+Both datasets use the same IDX format, so the same MNIST-style loader can be used for both.
 
 ---
 
@@ -141,12 +189,12 @@ git submodule update --init --recursive
 │   ├── loss/                     # Loss functions
 │   ├── optimizer/                # Optimizers
 │   ├── train/                    # Training loop
-│   ├── verify/                   # Runtime verification utilities
-│   ├── any_types.hpp             # Type-erased training-related aliases/types
-│   ├── any_value.hpp             # Generic type-erased value holder
-│   ├── dataloader.hpp            # Mini-batch DataLoader
-│   ├── except.hpp                # Project exception utilities
-│   └── Linalg.hpp                # Linear algebra aliases
+│   ├── verify/                   # Runtime checks
+│   ├── any_types.hpp
+│   ├── any_value.hpp
+│   ├── dataloader.hpp
+│   ├── except.hpp
+│   └── Linalg.hpp
 ├── scripts/
 │   ├── download_mnist.sh
 │   └── download_fashion_mnist.sh
@@ -156,62 +204,16 @@ git submodule update --init --recursive
 
 ---
 
-## Dataset Setup
-
-Datasets are not stored in the repository.
-
-The repository contains scripts for downloading MNIST and Fashion-MNIST in IDX format.
-
-### MNIST
-
-Download MNIST:
-
-```bash
-./scripts/download_mnist.sh
-```
-
-Expected structure:
-
-```text
-data/mnist/
-├── train-images-idx3-ubyte
-├── train-labels-idx1-ubyte
-├── t10k-images-idx3-ubyte
-└── t10k-labels-idx1-ubyte
-```
-
-### Fashion-MNIST
-
-Download Fashion-MNIST:
-
-```bash
-./scripts/download_fashion_mnist.sh
-```
-
-Expected structure:
-
-```text
-data/fashion_mnist/
-├── train-images-idx3-ubyte
-├── train-labels-idx1-ubyte
-├── t10k-images-idx3-ubyte
-└── t10k-labels-idx1-ubyte
-```
-
-Both datasets use the same IDX file structure, so the same MNIST-style loader can be used for both.
-
----
-
 ## Build
 
-### Release Build
+### Release
 
 ```bash
 cmake -S . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release
 cmake --build cmake-build-release
 ```
 
-### Debug Build
+### Debug
 
 ```bash
 cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug
@@ -246,6 +248,10 @@ Full setup from a clean clone:
 git clone --recurse-submodules https://github.com/elegant784seat/nrl-ntwrks-frm-scrtch.git
 cd nrl-ntwrks-frm-scrtch
 
+git submodule sync --recursive
+git submodule update --init --recursive
+
+chmod +x scripts/download_mnist.sh scripts/download_fashion_mnist.sh
 ./scripts/download_mnist.sh
 ./scripts/download_fashion_mnist.sh
 
@@ -280,8 +286,6 @@ int main() {
 
 ## Mathematical Background
 
-The library implements a standard fully connected neural network.
-
 For one linear layer, the forward pass is:
 
 ```math
@@ -295,7 +299,7 @@ where:
 - `b` is the bias vector;
 - `Y` is the output matrix.
 
-A non-linear activation function is then applied element-wise:
+A non-linear activation function is applied element-wise:
 
 ```math
 A = f(Y)
@@ -304,8 +308,6 @@ A = f(Y)
 ---
 
 ## Mean Squared Error
-
-The Mean Squared Error loss is defined as:
 
 ```math
 L(y_pred, y) =
@@ -323,14 +325,12 @@ dL / dy_pred =
 
 ## Softmax
 
-Softmax converts raw model outputs into probabilities:
-
 ```math
 softmax(z_i) =
 exp(z_i) / sum(exp(z_j))
 ```
 
-For numerical stability, the implementation can use the shifted form:
+Numerically stable form:
 
 ```math
 softmax(z_i) =
@@ -341,14 +341,12 @@ exp(z_i - max(z)) / sum(exp(z_j - max(z)))
 
 ## Cross-Entropy Loss
 
-Cross-Entropy loss is defined as:
-
 ```math
 L(y_pred, y) =
 - sum(y_i * log(y_pred_i))
 ```
 
-For Softmax Cross-Entropy, the gradient with respect to logits simplifies to:
+For Softmax Cross-Entropy:
 
 ```math
 dL / dz =
@@ -372,23 +370,17 @@ For the linear layer:
 Y = XW + b
 ```
 
-the gradients are:
-
-### Gradient with respect to weights
+Gradients:
 
 ```math
 dL / dW =
 X^T * dL / dY
 ```
 
-### Gradient with respect to bias
-
 ```math
 dL / db =
 sum(dL / dY)
 ```
-
-### Gradient with respect to input
 
 ```math
 dL / dX =
@@ -399,40 +391,24 @@ dL / dY * W^T
 
 ## Optimization
 
-### Stochastic Gradient Descent
-
-The SGD update rule:
+### SGD
 
 ```math
 theta_next =
 theta - alpha * grad
 ```
 
-where:
-
-- `theta` is a trainable parameter;
-- `alpha` is the learning rate;
-- `grad` is the gradient of the loss function.
-
----
-
-## Adam Optimizer
-
-First moment estimate:
+### Adam
 
 ```math
 m_t =
 beta_1 * m_prev + (1 - beta_1) * g_t
 ```
 
-Second moment estimate:
-
 ```math
 v_t =
 beta_2 * v_prev + (1 - beta_2) * g_t^2
 ```
-
-Bias correction:
 
 ```math
 m_hat =
@@ -444,20 +420,16 @@ v_hat =
 v_t / (1 - beta_2^t)
 ```
 
-Final parameter update:
-
 ```math
 theta_next =
 theta - alpha * m_hat / (sqrt(v_hat) + eps)
 ```
 
-Adam adapts the update scale for each parameter independently and is commonly used for training neural networks.
-
 ---
 
 ## Architecture
 
-The project uses modern C++ design techniques:
+The project uses:
 
 - value semantics;
 - RAII;
@@ -475,27 +447,9 @@ Main type-erased abstractions:
 
 Type erasure is used to provide value-like polymorphic interfaces without exposing inheritance-heavy APIs to the user.
 
-This makes it possible to store different implementations behind one uniform interface while preserving copy and move semantics.
-
----
-
-## Design Principles
-
-The library follows several core design principles:
-
-- neural network components should be reusable;
-- training state should be separated from layer parameters;
-- forward propagation should explicitly return state required for backward propagation;
-- gradients should be represented separately from trainable parameters;
-- optimizers should be independent from layers;
-- interfaces should remain explicit and predictable;
-- implementation details should remain hidden behind abstractions.
-
 ---
 
 ## Training Data Flow
-
-Typical training pipeline:
 
 ```text
 input batch
@@ -520,6 +474,64 @@ parameter gradients
     |
     v
 optimizer update
+```
+
+---
+
+## Troubleshooting
+
+### Eigen/Dense file not found
+
+Check that Eigen submodule is downloaded:
+
+```bash
+ls external/eigen/Eigen
+```
+
+If the directory is empty:
+
+```bash
+git submodule sync --recursive
+git submodule update --init --recursive
+```
+
+If it still does not work:
+
+```bash
+rm -rf external/eigen external/eigenrand
+git submodule update --init --recursive
+```
+
+Then rebuild from scratch:
+
+```bash
+rm -rf cmake-build-release
+cmake -S . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build cmake-build-release
+```
+
+### Dataset files are missing
+
+Run:
+
+```bash
+./scripts/download_mnist.sh
+./scripts/download_fashion_mnist.sh
+```
+
+Then check:
+
+```bash
+ls data/mnist
+ls data/fashion_mnist
+```
+
+### Scripts do not run
+
+Run:
+
+```bash
+chmod +x scripts/download_mnist.sh scripts/download_fashion_mnist.sh
 ```
 
 ---
