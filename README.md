@@ -2,7 +2,7 @@
 
 C++ library for building and training fully connected neural networks from scratch.
 
-Project name in Russian: **Нейросети с нуля**.
+Russian project name: **Нейросети с нуля**.
 
 ---
 
@@ -10,36 +10,37 @@ Project name in Russian: **Нейросети с нуля**.
 
 This project is an educational neural network library written in modern C++.
 
-The main goal of the project is to implement neural network components manually without using high-level machine learning frameworks such as PyTorch or TensorFlow.
+The main goal is to implement the core parts of neural network training manually, without using high-level machine learning frameworks such as PyTorch or TensorFlow.
 
-The library is designed for studying:
+The project focuses on:
 
+- fully connected neural networks;
 - forward propagation;
 - backpropagation;
-- gradient descent;
+- loss functions;
 - optimizers;
-- neural network architecture;
-- modern C++ abstractions;
-- type erasure;
+- mini-batch training;
+- dataset loading;
+- type erasure in C++;
 - value semantics;
-- modular API design.
+- clean modular API design.
 
-The project focuses on understanding how neural networks work internally instead of relying on existing ML ecosystems.
+The library is intended primarily for studying how neural networks work internally.
 
 ---
 
 ## Features
 
-- Fully connected neural networks
-- Mini-batch training
+- Fully connected neural network components
+- Mini-batch data loading
 - Forward and backward propagation
-- Modular neural network architecture
-- MNIST-style dataset support
-- Type-erased interfaces
+- Manual gradient computation
+- MNIST and Fashion-MNIST IDX dataset support
+- Type-erased interfaces for activations, layers, losses and optimizers
 - Modern C++20 codebase
 - CMake build system
-- Git submodules for dependencies
-- Educational focus on neural network internals
+- Git submodules for third-party dependencies
+- Console demo and manual tests
 
 ---
 
@@ -68,21 +69,23 @@ The project focuses on understanding how neural networks work internally instead
 
 - SGD
 - Adam
+- `AnyOptimizer`
 
 ### Data Loading
 
 - Generic `DataLoader`
-- MNIST dataset loader
+- IDX dataset loader
+- MNIST-compatible dataset loader
 - Batch iteration
 - Optional shuffling
 
 ### Training
 
+- Training loop
 - Forward pass
 - Backward pass
 - Gradient propagation
-- Parameter updates
-- Training loop
+- Parameter update step
 
 ---
 
@@ -92,15 +95,15 @@ The project focuses on understanding how neural networks work internally instead
 - CMake
 - Eigen
 - EigenRand
+- Git submodules
 - clang-format
 - clang-tidy
-- Git submodules
 
 ---
 
 ## Dependencies
 
-The project uses third-party libraries through Git submodules:
+The project uses third-party dependencies through Git submodules:
 
 - Eigen
 - EigenRand
@@ -109,9 +112,10 @@ Clone the repository with submodules:
 
 ```bash
 git clone --recurse-submodules https://github.com/elegant784seat/nrl-ntwrks-frm-scrtch.git
+cd nrl-ntwrks-frm-scrtch
 ```
 
-If the repository was already cloned without submodules:
+If the repository was cloned without submodules, initialize them manually:
 
 ```bash
 git submodule update --init --recursive
@@ -124,40 +128,81 @@ git submodule update --init --recursive
 ```text
 .
 ├── app/                          # Demo application and manual tests
-├── data/                         # Dataset files
-├── external/                     # Third-party libraries
+├── data/                         # Dataset directories
+│   ├── mnist/
+│   └── fashion_mnist/
+├── external/                     # Third-party libraries as Git submodules
 │   ├── eigen/
 │   └── eigenrand/
 ├── nn/
 │   ├── activation/               # Activation functions
-│   ├── datasets/                 # Dataset loaders
+│   ├── datasets/                 # IDX and MNIST-style dataset loaders
 │   ├── layers/                   # Neural network layers
 │   ├── loss/                     # Loss functions
 │   ├── optimizer/                # Optimizers
 │   ├── train/                    # Training loop
+│   ├── verify/                   # Runtime verification utilities
+│   ├── any_types.hpp             # Type-erased training-related aliases/types
+│   ├── any_value.hpp             # Generic type-erased value holder
+│   ├── dataloader.hpp            # Mini-batch DataLoader
+│   ├── except.hpp                # Project exception utilities
 │   └── Linalg.hpp                # Linear algebra aliases
+├── scripts/
+│   ├── download_mnist.sh
+│   └── download_fashion_mnist.sh
 ├── CMakeLists.txt
 └── README.md
 ```
 
 ---
 
-## Build
+## Dataset Setup
 
-### Clone Repository
+Datasets are not stored in the repository.
+
+The repository contains scripts for downloading MNIST and Fashion-MNIST in IDX format.
+
+### MNIST
+
+Download MNIST:
 
 ```bash
-git clone --recurse-submodules https://github.com/elegant784seat/nrl-ntwrks-frm-scrtch.git
-cd nrl-ntwrks-frm-scrtch
+./scripts/download_mnist.sh
 ```
 
-If submodules were not initialized:
+Expected structure:
+
+```text
+data/mnist/
+├── train-images-idx3-ubyte
+├── train-labels-idx1-ubyte
+├── t10k-images-idx3-ubyte
+└── t10k-labels-idx1-ubyte
+```
+
+### Fashion-MNIST
+
+Download Fashion-MNIST:
 
 ```bash
-git submodule update --init --recursive
+./scripts/download_fashion_mnist.sh
 ```
+
+Expected structure:
+
+```text
+data/fashion_mnist/
+├── train-images-idx3-ubyte
+├── train-labels-idx1-ubyte
+├── t10k-images-idx3-ubyte
+└── t10k-labels-idx1-ubyte
+```
+
+Both datasets use the same IDX file structure, so the same MNIST-style loader can be used for both.
 
 ---
+
+## Build
 
 ### Release Build
 
@@ -165,8 +210,6 @@ git submodule update --init --recursive
 cmake -S . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release
 cmake --build cmake-build-release
 ```
-
----
 
 ### Debug Build
 
@@ -186,13 +229,30 @@ cmake --build cmake-build-release --target run_all_tests
 ./cmake-build-release/run_all_tests
 ```
 
----
-
 ### Run demo application
 
 ```bash
 cmake --build cmake-build-release --target nrl_ntwrks_frm_scrtch
 ./cmake-build-release/nrl_ntwrks_frm_scrtch
+```
+
+---
+
+## Quick Start
+
+Full setup from a clean clone:
+
+```bash
+git clone --recurse-submodules https://github.com/elegant784seat/nrl-ntwrks-frm-scrtch.git
+cd nrl-ntwrks-frm-scrtch
+
+./scripts/download_mnist.sh
+./scripts/download_fashion_mnist.sh
+
+cmake -S . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build cmake-build-release
+
+./cmake-build-release/run_all_tests
 ```
 
 ---
@@ -208,11 +268,8 @@ cmake --build cmake-build-release --target nrl_ntwrks_frm_scrtch
 
 int main() {
   nn::LinearLayer layer(784, 128);
-
   nn::ReluFunc relu;
-
   nn::SoftmaxCrossEntropyLoss loss;
-
   nn::Sgd optimizer(0.01f);
 
   return 0;
@@ -251,17 +308,15 @@ A = f(Y)
 The Mean Squared Error loss is defined as:
 
 ```math
-L(y_{pred}, y) =
-\frac{1}{n}
-\sum_{i=1}^{n}
-(y_{pred,i} - y_i)^2
+L(y_pred, y) =
+1 / n * sum((y_pred_i - y_i)^2)
 ```
 
 Gradient:
 
 ```math
-\frac{\partial L}{\partial y_{pred}} =
-\frac{2}{n}(y_{pred} - y)
+dL / dy_pred =
+2 / n * (y_pred - y)
 ```
 
 ---
@@ -272,19 +327,14 @@ Softmax converts raw model outputs into probabilities:
 
 ```math
 softmax(z_i) =
-\frac{e^{z_i}}
-{\sum_{j=1}^{k} e^{z_j}}
+exp(z_i) / sum(exp(z_j))
 ```
 
-For numerical stability, the implementation may use the shifted form:
+For numerical stability, the implementation can use the shifted form:
 
 ```math
 softmax(z_i) =
-\frac{
-e^{z_i - \max(z)}
-}{
-\sum_{j=1}^{k} e^{z_j - \max(z)}
-}
+exp(z_i - max(z)) / sum(exp(z_j - max(z)))
 ```
 
 ---
@@ -294,17 +344,15 @@ e^{z_i - \max(z)}
 Cross-Entropy loss is defined as:
 
 ```math
-L(y_{pred}, y) =
--
-\sum_{i=1}^{k}
-y_i \log(y_{pred,i})
+L(y_pred, y) =
+- sum(y_i * log(y_pred_i))
 ```
 
-For Softmax Cross-Entropy, the gradient simplifies to:
+For Softmax Cross-Entropy, the gradient with respect to logits simplifies to:
 
 ```math
-\frac{\partial L}{\partial z} =
-y_{pred} - y
+dL / dz =
+y_pred - y
 ```
 
 ---
@@ -314,10 +362,8 @@ y_{pred} - y
 Backpropagation is based on the chain rule:
 
 ```math
-\frac{\partial L}{\partial x} =
-\frac{\partial L}{\partial y}
-\cdot
-\frac{\partial y}{\partial x}
+dL / dx =
+dL / dy * dy / dx
 ```
 
 For the linear layer:
@@ -331,29 +377,22 @@ the gradients are:
 ### Gradient with respect to weights
 
 ```math
-\frac{\partial L}{\partial W} =
-X^T
-\frac{\partial L}{\partial Y}
+dL / dW =
+X^T * dL / dY
 ```
-
----
 
 ### Gradient with respect to bias
 
 ```math
-\frac{\partial L}{\partial b} =
-\sum_{i=1}^{n}
-\frac{\partial L}{\partial Y_i}
+dL / db =
+sum(dL / dY)
 ```
-
----
 
 ### Gradient with respect to input
 
 ```math
-\frac{\partial L}{\partial X} =
-\frac{\partial L}{\partial Y}
-W^T
+dL / dX =
+dL / dY * W^T
 ```
 
 ---
@@ -365,18 +404,15 @@ W^T
 The SGD update rule:
 
 ```math
-\theta_{t+1} =
-\theta_t
--
-\alpha
-\nabla_{\theta} L
+theta_next =
+theta - alpha * grad
 ```
 
 where:
 
 - `theta` is a trainable parameter;
 - `alpha` is the learning rate;
-- `∇L` is the gradient of the loss function.
+- `grad` is the gradient of the loss function.
 
 ---
 
@@ -386,53 +422,42 @@ First moment estimate:
 
 ```math
 m_t =
-\beta_1 m_{t-1}
-+
-(1 - \beta_1) g_t
+beta_1 * m_prev + (1 - beta_1) * g_t
 ```
 
 Second moment estimate:
 
 ```math
 v_t =
-\beta_2 v_{t-1}
-+
-(1 - \beta_2) g_t^2
+beta_2 * v_prev + (1 - beta_2) * g_t^2
 ```
 
 Bias correction:
 
 ```math
-\hat{m}_t =
-\frac{m_t}{1 - \beta_1^t}
+m_hat =
+m_t / (1 - beta_1^t)
 ```
 
 ```math
-\hat{v}_t =
-\frac{v_t}{1 - \beta_2^t}
+v_hat =
+v_t / (1 - beta_2^t)
 ```
 
 Final parameter update:
 
 ```math
-\theta_t =
-\theta_{t-1}
--
-\alpha
-\frac{
-\hat{m}_t
-}{
-\sqrt{\hat{v}_t} + \varepsilon
-}
+theta_next =
+theta - alpha * m_hat / (sqrt(v_hat) + eps)
 ```
 
-Adam adapts learning rates for each parameter independently and usually converges faster than plain SGD.
+Adam adapts the update scale for each parameter independently and is commonly used for training neural networks.
 
 ---
 
 ## Architecture
 
-The project actively uses modern C++ design techniques:
+The project uses modern C++ design techniques:
 
 - value semantics;
 - RAII;
@@ -441,33 +466,34 @@ The project actively uses modern C++ design techniques:
 - modular abstractions;
 - compile-time and run-time polymorphism.
 
-Main abstractions:
+Main type-erased abstractions:
 
 - `AnyFunc`
 - `AnyLayer`
 - `AnyLoss`
 - `AnyOptimizer`
 
-The project uses type erasure to provide value-like polymorphic interfaces without exposing inheritance-heavy APIs to the user.
+Type erasure is used to provide value-like polymorphic interfaces without exposing inheritance-heavy APIs to the user.
 
-This architecture allows different implementations to be stored and composed uniformly while preserving copy/move semantics and modularity.
+This makes it possible to store different implementations behind one uniform interface while preserving copy and move semantics.
 
 ---
 
 ## Design Principles
 
-The library follows several core principles:
+The library follows several core design principles:
 
 - neural network components should be reusable;
 - training state should be separated from layer parameters;
 - forward propagation should explicitly return state required for backward propagation;
+- gradients should be represented separately from trainable parameters;
 - optimizers should be independent from layers;
 - interfaces should remain explicit and predictable;
 - implementation details should remain hidden behind abstractions.
 
 ---
 
-## Data Flow
+## Training Data Flow
 
 Typical training pipeline:
 
@@ -504,7 +530,7 @@ optimizer update
 - Learn modern C++ architecture
 - Build reusable ML abstractions
 - Implement neural network training manually
-- Train models on MNIST-style datasets
+- Work with MNIST-style datasets
 - Create a clean educational codebase
 
 ---
@@ -518,7 +544,7 @@ optimizer update
 - Additional optimizers
 - More datasets
 - Parallel training
-- Better testing infrastructure
+- Extended test infrastructure
 
 ---
 
@@ -526,10 +552,9 @@ optimizer update
 
 - Eigen: https://eigen.tuxfamily.org
 - EigenRand: https://github.com/bab2min/EigenRand
-- Sean Parent — Runtime Polymorphism:
-  https://www.youtube.com/watch?v=QGcVXgEVMJg
-- cppreference:
-  https://en.cppreference.com
+- Sean Parent — Runtime Polymorphism: https://www.youtube.com/watch?v=QGcVXgEVMJg
+- cppreference: https://en.cppreference.com
+- Dima Trushin: https://github.com/DimaTrushin/CppCode
 
 ---
 
